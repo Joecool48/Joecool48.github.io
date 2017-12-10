@@ -88,3 +88,10 @@ body {
     background: #DDD;
     padding: 0; margin: 0;
 }
+#stars {
+background-color:black;
+background-image:url('stars.jpg');
+font-size:10pt;
+color:white;
+font-family:sans-serif;
+}
