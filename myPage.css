@@ -1,0 +1,91 @@
+.fixed-top {
+	background-color: green;
+}
+body {
+	padding-top: 110px;
+
+}
+#document {
+}
+#mainnav {
+	height: 60px;
+}
+.jumbodec {
+	font-size: 50px;
+}
+.wordcloud {
+  margin-top: 60px;
+  border: blue solid 5px;
+  padding-left: 50px;
+}
+.losange, .losange div {
+  margin: 0 auto;
+  transform-origin: 50% 50%;
+  overflow: hidden;
+  width: 250px;
+  height: 250px;
+}
+
+.losange {
+  transform: rotate(45deg) translateY(10px);
+}
+
+.losange .los1 {
+  width: 355px;
+  height: 355px;
+  transform: rotate(-45deg) translateY(-74px);
+}
+
+.losange .los1 img {
+  width: 100%;
+  height: auto;
+}
+.img-center {margin:0 auto;}
+.linear-wipe {
+ text-align: center;
+  background: -webkit-linear-gradient(to left, #FFF 20%, #FF0 40%, #FF0 60%, #FFF 80%);
+  background: linear-gradient(to right, #FFF 20%, #FF0 40%, #FF0 60%, #FFF 80%);
+  background-size: 200% auto;
+  color: #000;
+  background-clip: text;
+  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-animation: shine 1s linear infinite;
+          animation: shine 1s linear infinite;
+}
+@-webkit-keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+}
+.center {
+    margin: auto;
+    width: 50%;
+    border: 3px solid green;
+    padding: 10px;
+}
+.banner {
+    display: inline-block;
+}
+
+.banner-sm {
+  width: 32%;
+}
+
+.banner-lg {
+  width: 65%;
+}
+
+.banner {
+    height: 100px;
+    background: #DDD;
+    padding: 0; margin: 0;
+}
