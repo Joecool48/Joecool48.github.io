@@ -28,7 +28,6 @@ body {
 .losange {
   transform: rotate(45deg) translateY(10px);
 }
-
 .losange .los1 {
   width: 355px;
   height: 355px;
@@ -94,4 +93,7 @@ background-image:url('stars.jpg');
 font-size:10pt;
 color:white;
 font-family:sans-serif;
+}
+.blue-background {
+  background-color: #000080;
 }
