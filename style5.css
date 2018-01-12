@@ -3,10 +3,16 @@
 */
 @import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
 
-
+.jumbocolor {
+    background-color: #ADD8E6 !important;
+}
+.jumbocolor1 {
+    background-color: #ffffff !important;
+}
 body {
     font-family: 'Poppins', sans-serif;
     background: #fafafa;
+    min-width: 100%;
 }
 
 p {
@@ -22,7 +28,6 @@ a, a:hover, a:focus {
     text-decoration: none;
     transition: all 0.3s;
 }
-
 .navbar {
     padding: 15px 10px;
     background: #28a745;
@@ -150,9 +155,11 @@ a.article, a.article:hover {
     CONTENT STYLE
 ----------------------------------------------------- */
 #content {
-    padding: 20px;
-    min-height: 100vh;
+    padding: 3%;
+    min-height: 150vh;
+    width: 100%;
     transition: all 0.3s;
+
 }
 
 #sidebarCollapse {
@@ -222,3 +229,22 @@ a.article, a.article:hover {
     }
 
 }
+/*SKill bar*/
+.bar {
+    width: 100%; /* Full width */
+    background-color: #ddd; /* Grey background */
+}
+.skills {
+    text-align: right; /* Right-align text */
+    padding-right: 20px; /* Add some right padding */
+    line-height: 40px; /* Set the line-height to center the text inside the skill bar, and to expand the height of the container */
+    color: white; /* White text color */
+}
+.html {width: 95%; background-color: #4CAF50;}
+.css {width: 95%; background-color: #4CAF50;}
+.java {width: 90%; background-color: #4CAF50;} /* Green */
+.python {width: 90%; background-color: #2196F3;} /* Blue */
+.c {width: 80%; background-color: #f44336;}
+.cpp {width: 80%; background-color: #f44336;}
+.cs  {width: 85%; background-color: #f44336;}/* Red */
+.javascript  {width: 60%; background-color: #f44336;}  /* Dark Grey */
