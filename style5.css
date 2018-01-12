@@ -240,11 +240,26 @@ a.article, a.article:hover {
     line-height: 40px; /* Set the line-height to center the text inside the skill bar, and to expand the height of the container */
     color: white; /* White text color */
 }
-.html {width: 95%; background-color: #4CAF50;}
-.css {width: 95%; background-color: #4CAF50;}
-.java {width: 90%; background-color: #4CAF50;} /* Green */
-.python {width: 90%; background-color: #2196F3;} /* Blue */
-.c {width: 80%; background-color: #f44336;}
-.cpp {width: 80%; background-color: #f44336;}
-.cs  {width: 85%; background-color: #f44336;}/* Red */
-.javascript  {width: 60%; background-color: #f44336;}  /* Dark Grey */
+.html {width: 95%; background-color: #2ECC40;}
+.css {width: 95%; background-color: #0074D9;}
+.java {width: 90%; background-color: #85144b;} /* Green */
+.python {width: 90%; background-color: #001f3f;} /* Blue */
+.c {width: 80%; background-color: #FF4136;}
+.cpp {width: 80%; background-color: #FF851B;}
+.cs  {width: 85%; background-color: #FFDC00;}
+.c {width: 80%; background-color: #FF4136;}/* Red */
+.javascript  {width: 60%; background-color: #B10DC9;}  /* Dark Grey */
+.microcontrollers {width: 85%; background-color: #F012BE;}
+.circuitdesign {width: 80%; background-color: #2ECC40;}
+.robotics {width: 65%; background-color: #001f3f;}
+.computervision {width: 55%; background-color: #39CCCC;}
+.linux {width: 85%; background-color: #FF4136;}
+.android {width: 80%; background-color: #0074D9;}
+.unity {width: 75%; background-color: #85144b;}
+.git {width: 75%; background-color: #2ECC40;}
+.photoshop {width: 65%; background-color: #F012BE;}
+.inventor {width: 50%; background-color: #FFDC00;}
+
+.header {
+    text-align: center;
+}
