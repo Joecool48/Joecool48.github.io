@@ -73,7 +73,13 @@
                         </div>
                     </div>
                 </nav>
-                
+                <!-- Page content -->
+                <div class="container-fluid">
+                    <div class="jumbotron jumbocolor">
+                        <h1 class = "centertext" id = "LEDHead"></h1>
+                    </div>
+                </div>
+                <p>Is your goal to save earths natural resources, and not needlessly waste power? Well then this project is exactly what you don't want. With almost 100 LED's, each consuming up to 60mA's each with a varying forward voltage, this project consumes a monsterous amount of power. But as long as it looks cool, it's totally fine to waste this much power: and boy does it look cool. The design simply started off as being an array of LED's, but quickly evolved to much more than that. ---------------------<br><br> The first design problem we ran into was the fact that you simply can string this many LED's in series; it would be hundreds of volts. Getting a HV transformer to get this kind of voltage to string a bunch of LED's together is not really a reasonable solution. Plus, this wouldn't offer the kind of control that I wanted. So simple, we had to put them in parallel. Easier said than done though, as wiring all these in parallel would require a lot of pull down resistors. Plus, there would need to be different values of resistor for each color (red, green, blue). But, at the time that seemed like my easiest option, so I went with it. <br><br>After the LED arrangement was figured out, the next step was to figure out the control scheme. I used 12 n-type transistors-4 letters in my name, with 3 per color. Instead of designing my own PCB on Eagle, I just opted to get a blank board and solder stripped wires to it. Each transistor would supply power to all the LED's of one color in a letter. Using this arrangement it would be easy to feed each one of them a PWM signal to change the color of each letter at my discretion. To change the PWM signal I used an Arduino Mega since it had plenty of PWM pins, and was relatively cheap for such a versitile microcontroller. <br><br>After all that was figured out, there were still a few more design considerations to make. First of all, I needed some way to control the LED's that didn't involve me deleting and adding code to the Arduino and uploading it. While using the serial monitor is very possible over Bluetooth (and actually the same thing as a wire connection from the Arduino's perspective) it didn't seem very convienient to me if I wanted to change the colors quickly. So, I decided to make my own custom Android app for my phone! The app consisted of a slider interface that controlled the color of each letter using one slider for red, green, and blue. The app took the slider data anytime it changed, and sent it via a bit stream of 3 byte packets. The first byte contained the char letter, the second the char R, G, or B for the color, and the third the 8-bit color value. (the arduino only has 8 bit PWM signals).<br><br>The last steps were simple. I needed a power supply, and a reliable Bluetooth module. Luckily the HC-05 is a very good Bluetooth master, and fit the job perfectly. All I had to do was hook up Rx, Tx, 5v power, and ground and that was it. Then I could easily read in the commands from my phone, and convert those into PWM signals for the transistor's to do their jobs. The very last step was to choose a power supply. Considering the fact that both the Arduino and HC-05 module could run off of 5v, I opten for a 5v AC to DC wall adapter. This meant that no voltage regulators or transformers would be necessary, although each LED would still need its individual pull down resistor. Finally, after all that the project planning was complete. After plenty of hours drilling holes into canvas, soldering resistors, fixing shorts, and writing lots of code the project was finished! And it looks great!</p>
         </div>
 
 
@@ -84,7 +90,7 @@
          <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
          <!-- Bootstrap Js CDN -->
          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
+         <script type="text/javascript" src = "Anim.js"></script>
          <script type="text/javascript">
              $(document).ready(function () {
                  $('#sidebarCollapse').on('click', function () {

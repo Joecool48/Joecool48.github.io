@@ -462,3 +462,6 @@ a.animated-button.thar-four:before {
     border-radius: 10px;
     height: 25em;
 }
+.centertext {
+    text-align: center;
+}
