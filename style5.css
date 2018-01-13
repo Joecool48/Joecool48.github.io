@@ -463,5 +463,5 @@ a.animated-button.thar-four:before {
     height: 25em;
 }
 .centertext {
-    text-align: center;
+    text-align: center !important;
 }
