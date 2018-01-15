@@ -28,6 +28,10 @@ var specialValues = ["null", "undefined"];
 var specialValueColor = "violet";
 var primitiveTypes = ["int", "char", "bool", "boolean", "float", "double", "short", "long", "byte"];
 var primitiveTypeColor = "green";
+var otherTypes = ["String", "string"];
+var otherTypeColor = "blue";
+var functionDeclarationColor = "green"
+var declarationParameterColor = "orange";
 function setupTypewriter(t, text, codeSample) {
         var isPlainText = true;
         var isAlpha = function(ch){
@@ -187,6 +191,18 @@ function setupTypewriter(t, text, codeSample) {
                         break;
                     }
                 }
+                for (i = 0; i < otherTypes.length; i++) {
+                    if (text.slice (cursorPosition, cursorPosition + otherTypes[i].length) === otherTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + otherTypes[i].length])) {
+                        console.log ("Found " +  otherTypes[i]);
+                        addSpan (otherTypes[i].slice (0,1),t,otherTypeColor);
+                        cursorPosition += 1;
+                        leftToAdd += otherTypes[i].slice (1);
+                        color = otherTypeColor;
+                        isPlainText = false;
+                        break;
+                    }
+                }
+                
             }
             if (isPlainText) {
                 console.log ("It's plain text")
@@ -212,6 +228,6 @@ function setupTypewriter(t, text, codeSample) {
 
     var typer = document.getElementById('typewriter');
 
-    typewriter = setupTypewriter(typewriter, "int i = 0;\n for (int i = 0; i < str.length(); i++) {\n    String s = str.substring(0,5);\n} \n", true);
+    typewriter = setupTypewriter(typewriter, "int i = 0;\n for (int i = 0; i < str.length(); i++) {\nString s = str.substring(0,5) + 'Hi there, its mario';\n} \n", true);
 
     typewriter.type();
