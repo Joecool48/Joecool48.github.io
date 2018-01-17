@@ -50,7 +50,7 @@ var plainTextColor = "white";
 var seperators = [";", ",",".", ":", "[", "]", "{", "}", "(", ")"];
 var seperatorColor = "white";
 var functionColor = "blue";
-var keywords = ["new", "for", "if", "else", "while", "break", "continue", "return"]; //...
+var keywords = ["new", "for", "if", "else", "while", "break", "continue", "return", "class", "struct", "function", "goto", "static", "public", "private", "protected", "void"]; //...
 var keywordColor = "red";
 var stringColor = "yellow";
 //Figure out how to implement escape characters correctly
@@ -92,7 +92,6 @@ function setupTypewriter(t, content, codeSample) {
             }
             //Check for any characters that still need to be added
             else if (codeSample && leftToAdd != "") {
-                console.log (leftToAdd);
                 addSpan (leftToAdd.slice(0,1), t, color);
                 leftToAdd = leftToAdd.slice(1);
                 cursorPosition += 1;
@@ -127,11 +126,9 @@ function setupTypewriter(t, content, codeSample) {
                 cursorPosition += 1;
                 isPlainText = false;
             }
-            //Check for keywords
             else if (codeSample && leftToAdd == "") {
                 for (i = 0; i < escapeCharacters.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + escapeCharacters[i].length) === escapeCharacters[i]) {
-                        console.log ("Found " +  escapeCharacters[i]);
+                    if (text.slice (cursorPosition, cursorPosition + escapeCharacters[i].length) == escapeCharacters[i]) {
                         addSpan (escapeCharacters[i].slice (0,1),t,escapeCharacterColor);
                         cursorPosition += 1;
                         leftToAdd += escapeCharacters[i].slice (1);
@@ -146,7 +143,6 @@ function setupTypewriter(t, content, codeSample) {
                         addSpan (keywords[i].slice(0,1),t,keywordColor);
                         leftToAdd = keywords[i].slice (1);
                         cursorPosition += 1;
-                        console.log ("Found " + keywords[i]);
                         isPlainText = false;
                         break;
                     }
@@ -180,7 +176,6 @@ function setupTypewriter(t, content, codeSample) {
                 }
                 for (i = 0; i < booleans.length; i++) {
                     if (text.slice (cursorPosition, cursorPosition + booleans[i].length) === booleans[i]) {
-                        console.log ("Found " +  booleans[i]);
                         addSpan (booleans[i].slice (0,1),t,booleanColor);
                         cursorPosition += 1;
                         leftToAdd += booleans[i].slice (1);
@@ -202,7 +197,6 @@ function setupTypewriter(t, content, codeSample) {
                 // }
                 for (i = 0; i < primitiveTypes.length; i++) {
                     if (text.slice (cursorPosition, cursorPosition + primitiveTypes[i].length) === primitiveTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + primitiveTypes[i].length])) {
-                        console.log ("Found " +  primitiveTypes[i]);
                         addSpan (primitiveTypes[i].slice (0,1),t,primitiveTypeColor);
                         cursorPosition += 1;
                         leftToAdd += primitiveTypes[i].slice (1);
@@ -213,7 +207,6 @@ function setupTypewriter(t, content, codeSample) {
                 }
                 for (i = 0; i < otherTypes.length; i++) {
                     if (text.slice (cursorPosition, cursorPosition + otherTypes[i].length) === otherTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + otherTypes[i].length])) {
-                        console.log ("Found " +  otherTypes[i]);
                         addSpan (otherTypes[i].slice (0,1),t,otherTypeColor);
                         cursorPosition += 1;
                         leftToAdd += otherTypes[i].slice (1);
@@ -233,15 +226,15 @@ function setupTypewriter(t, content, codeSample) {
                     var isFunctionDeclaration = false;
                     //Not exactly sure how to check for this well, but this should work for now
                     while (text[i] != "\n") {
+
                         //Checks to make sure there are no spaces in between the function letters
                         var spaces = checkSpaces (text.slice (cursorPosition, i));
-                        console.log (text[i]);
-                        if (text[i] == '(' && spaces <= 1) {
+                        if (text[i] == '(') {
                             paranthesis = i;
                             isFunction = true;
                             
                         }
-                        else if (text[i] == "{" && spaces <= 1) {
+                        else if (text[i] == "{") {
                             curlyBrace = i;
                             isFunctionDeclaration = true;
                             break;
@@ -252,10 +245,10 @@ function setupTypewriter(t, content, codeSample) {
                     while (text[j] == " " && text[j] != "\n") {
                         j--;
                     }
-                    if (!isAlpha(text[j])) {
+                    if (isFunction && (!isAlpha(text[j - 1]) || text[cursorPosition - 1] != "\n" || text[j - 1] != " ")) {
+                        console.log (text[j - 1]);
                         isFunction = false;
                     }
-                    console.log ("Is function: " + isFunction + " Is declaration " + isFunctionDeclaration);
                     if (isFunction && isFunctionDeclaration) {
                         console.log ("Is declaration")
                         isPlainText = false;
@@ -276,7 +269,6 @@ function setupTypewriter(t, content, codeSample) {
                 }
             }
             if (isPlainText) {
-                console.log ("It's plain text")
                 color = plainTextColor;
                 t.innerHTML += text[cursorPosition];
                 cursorPosition += 1;
@@ -287,7 +279,7 @@ function setupTypewriter(t, content, codeSample) {
                 setTimeout(type, tempTypeSpeed);
             }
             if (cursorPosition >= text.length - 1) {
-                function resetTimer() {
+                function resetTimer () {
                 window.clearInterval(action);
                 }
             }
