@@ -232,7 +232,7 @@ function setupTypewriter(t, content, codeSample) {
                     var isFunction = false;
                     var isFunctionDeclaration = false;
                     //Not exactly sure how to check for this well, but this should work for now
-                    while (i < 50 + cursorPosition && text[i] != "\n") {
+                    while (text[i] != "\n") {
                         //Checks to make sure there are no spaces in between the function letters
                         var spaces = checkSpaces (text.slice (cursorPosition, i));
                         console.log (text[i]);
