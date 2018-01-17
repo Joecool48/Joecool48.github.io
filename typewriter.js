@@ -14,6 +14,22 @@ var isAlpha = function(ch){
 var isNumber = function (num) {
     return /^[0-9]$/i.test(num);
 }
+function htmlEscape(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+function htmlUnescape(str){
+    return str
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+}
 //A function that counts the number of spaces in a line of text ignoring multiple between letters;
 //So, "Hi      my          name is      bob" returns 4
 function checkSpaces (text) {
@@ -56,39 +72,26 @@ var otherTypes = ["String", "string"];
 var otherTypeColor = "blue";
 var functionDeclarationColor = "green"
 var declarationParameterColor = "orange";
-function setupTypewriter(t, text, codeSample) {
+function setupTypewriter(t, content, codeSample) {
+        var text = htmlUnescape (content.innerHTML);
+        content.innerHTML = "";
         var isPlainText = true;
-        var cursorPosition = 0,
-            //tag = "",
-            //writingTag = false,
-            //tagOpen = false,
-        typeSpeed = 100,
-        tempTypeSpeed = 0;
-        color = "white"
+        var cursorPosition = 0;
+        var typeSpeed = 100;
+        var tempTypeSpeed = 0;
+        var color = "white";
         var type = function() {
             var isPlainText = true;
-            //tag.innerHTML += text[cursorPosition];
-                //if (text[cursorPosition] === " ") {
-                //    tempTypeSpeed = 0;
-                //}
-                tempTypeSpeed = (Math.random() * typeSpeed) + 50;
-                if (!codeSample) {
-                    t.innerHTML += text[cursorPosition];
-                    cursorPosition += 1;
-                }
-            // if (writingTag === true && text[cursorPosition] === ">") {
-            //     tempTypeSpeed = (Math.random() * typeSpeed) + 50;
-            //     writingTag = false;
-            //     if (tagOpen) {
-            //         var newSpan = document.createElement("span");
-            //         t.appendChild(newSpan);
-            //         newSpan.innerHTML = tag;
-            //         tag = newSpan.firstChild;
-            //     }
-            // }
-
+            tempTypeSpeed = (Math.random() * typeSpeed) + 50;
+            //Check for space
+            if (text[cursorPosition] === " ") {
+                console.log ("Space found");
+                t.appendChild( document.createTextNode( '\u00A0' ) );
+                cursorPosition += 1;
+                isPlainText = false;
+            }
             //Check for any characters that still need to be added
-            if (leftToAdd != "") {
+            else if (codeSample && leftToAdd != "") {
                 console.log (leftToAdd);
                 addSpan (leftToAdd.slice(0,1), t, color);
                 leftToAdd = leftToAdd.slice(1);
@@ -96,25 +99,18 @@ function setupTypewriter(t, text, codeSample) {
                 isPlainText = false;
             }
             //Check to see if it is a standalone int or float            
-            else if (cursorPosition > 0 && !isString && leftToAdd === "" && !isAlpha (text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + 1]) && isNumber(text[cursorPosition])) {
+            else if (codeSample && cursorPosition > 0 && !isString && leftToAdd === "" && !isAlpha (text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + 1]) && isNumber(text[cursorPosition])) {
                 addSpan (text[cursorPosition], t, numberColor);
                 cursorPosition += 1;
                 isPlainText = false;
             }
-            else if (text[cursorPosition] === "." && isNumber (text[cursorPosition - 1]) && isNumber (text[cursorPosition - 1])) {
+            else if (codeSample && text[cursorPosition] === "." && isNumber (text[cursorPosition - 1]) && isNumber (text[cursorPosition - 1])) {
                 addSpan (text[cursorPosition], t, numberColor);
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            //Check for space
-            else if (text[cursorPosition] === " ") {
-                console.log ("Space found");
-                t.innerHTML += " ";
                 cursorPosition += 1;
                 isPlainText = false;
             }
             //Add the colored char that is part of the string
-            else if (isString && leftToAdd == "") {
+            else if (codeSample && isString && leftToAdd == "") {
                 addSpan (text[cursorPosition], t, stringColor);
                 if (text[cursorPosition] === stringMatchingQuote) {
                     isString = false;
@@ -123,7 +119,7 @@ function setupTypewriter(t, text, codeSample) {
                 cursorPosition += 1;
             }
             //Test to see if the line is beginning as a string
-            else if (text[cursorPosition] === '"' || text[cursorPosition] === "'") {
+            else if (codeSample && (text[cursorPosition] === '"' || text[cursorPosition] === "'")) {
                 isString = true;
                 addSpan (text[cursorPosition], t, stringColor);
                 stringMatchingQuote = text[cursorPosition];
@@ -158,7 +154,16 @@ function setupTypewriter(t, text, codeSample) {
                 //Check for operators
                 for (i = 0; i < operators.length; i++) {
                     if (text[cursorPosition] === operators[i]) {
-                        addSpan (operators[i], t, operatorColor);
+                        if (operators[i] === "<") {
+                            addSpan ("&lt;",t,operatorColor);
+                        }
+                        else if (operators[i] === ">") {
+                            addSpan ("&gt;",t,operatorColor);
+                        }
+                        else {
+                            addSpan (operators[i], t, operatorColor);                            
+                        }
+
                         cursorPosition += 1;
                         isPlainText = false;
                         break;
@@ -196,7 +201,7 @@ function setupTypewriter(t, text, codeSample) {
                 //     }
                 // }
                 for (i = 0; i < primitiveTypes.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + primitiveTypes[i].length) === primitiveTypes[i]) {
+                    if (text.slice (cursorPosition, cursorPosition + primitiveTypes[i].length) === primitiveTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + primitiveTypes[i].length])) {
                         console.log ("Found " +  primitiveTypes[i]);
                         addSpan (primitiveTypes[i].slice (0,1),t,primitiveTypeColor);
                         cursorPosition += 1;
@@ -219,7 +224,7 @@ function setupTypewriter(t, text, codeSample) {
                 }
                 //Find function declarations by searching for parenthesis next to a character for a function.
                 //Also searches for the left curply brace to indicate a declaration of a function.
-                if (isAlpha (text[cursorPosition]) && !isString && leftToAdd == "") {
+                if (codeSample && isAlpha (text[cursorPosition]) && !isString && leftToAdd == "") {
                     console.log ("Function check");
                     var i = cursorPosition;
                     var paranthesis = cursorPosition;
@@ -227,7 +232,7 @@ function setupTypewriter(t, text, codeSample) {
                     var isFunction = false;
                     var isFunctionDeclaration = false;
                     //Not exactly sure how to check for this well, but this should work for now
-                    while (i < 50 + cursorPosition) {
+                    while (i < 50 + cursorPosition && text[i] != "\n") {
                         //Checks to make sure there are no spaces in between the function letters
                         var spaces = checkSpaces (text.slice (cursorPosition, i));
                         console.log (text[i]);
@@ -242,6 +247,13 @@ function setupTypewriter(t, text, codeSample) {
                             break;
                         }
                         i++;
+                    }
+                    var j = paranthesis;
+                    while (text[j] == " " && text[j] != "\n") {
+                        j--;
+                    }
+                    if (!isAlpha(text[j])) {
+                        isFunction = false;
                     }
                     console.log ("Is function: " + isFunction + " Is declaration " + isFunctionDeclaration);
                     if (isFunction && isFunctionDeclaration) {
@@ -267,7 +279,6 @@ function setupTypewriter(t, text, codeSample) {
                 console.log ("It's plain text")
                 color = plainTextColor;
                 t.innerHTML += text[cursorPosition];
-                leftToAdd = "";
                 cursorPosition += 1;
 
             }
@@ -287,7 +298,8 @@ function setupTypewriter(t, text, codeSample) {
         };
     }
     var typer = document.getElementById('typewriter');
-
-    typewriter = setupTypewriter(typewriter, "int lookImAFunction () {\n    for (int i = 0; i < str.length (); i++) {\nString s = str.substring (0,55);\n}\n}\n 'Hi there, Im a string' function ();\nreturn 73.0045;    ", true);
+    //First argument is the location of the text to be displayed. The second argument is the location of the text that you want to be displayed. The third
+    //is a boolean value indicating whether it is a code sample and should be syntax highlighted or not.
+    typewriter = setupTypewriter(typewriter, typewriter, true);
 
     typewriter.type();

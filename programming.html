@@ -74,11 +74,17 @@
                         </div>
                     </div>
                 </nav>
-                <div class = "container-fluid jumbotron" style= "background-color: #1c1c1c; text-overflow: wrap; text-align: left; overflow: auto; max-height: 90%">
-                    <div style="text-align:left; max-height: 50vh; overflow: auto;" id="typewriterdiv">
+                <div class = "container-fluid jumbotron" style= "background-color: #1c1c1c; text-overflow: wrap; text-align: left; overflow: auto; max-height: 90%; white-space: pre;">
+                    <div style="text-align:left; max-height: 50vh; overflow: auto; white-space: pre;" id="typewriterdiv">
 <p id="typewriter" style="text-align: left;">
-
-</p>
+int number1 = 10;
+int number2, number3 = 99;
+int product;
+product = number1 * (number2 * number3);
+System.out.println("Hello");
+thisIsAFunctionDeclaration () {
+    return "Hi I'm bob you memer";
+}</p>
                     </div>
                 </div>
         </div>
@@ -104,7 +110,7 @@
             window.setInterval(function() {
             var elem = document.getElementById('typewriterdiv');
             elem.scrollTop = elem.scrollHeight;
-            }, 100);
+            }, 5000);
          </script>
     </body>
 </html>
