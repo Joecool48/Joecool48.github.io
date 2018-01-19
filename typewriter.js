@@ -224,30 +224,25 @@ function setupTypewriter(t, content, codeSample) {
                     var curlyBrace = cursorPosition;
                     var isFunction = false;
                     var isFunctionDeclaration = false;
-                    //Not exactly sure how to check for this well, but this should work for now
+                    var lastNonSpace = -1;
                     while (text[i] != "\n") {
-
                         //Checks to make sure there are no spaces in between the function letters
+                        if (text[i] != " ") {
+                            lastNonSpace = text[i];
+                        }
+                        console.log (lastNonSpace)
                         var spaces = checkSpaces (text.slice (cursorPosition, i));
-                        if (text[i] == '(') {
+                        if (text[i] === '(' && spaces <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
                             paranthesis = i;
                             isFunction = true;
-                            
+                                
                         }
-                        else if (text[i] == "{") {
+                        else if (text[i] === "{" && space <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
                             curlyBrace = i;
                             isFunctionDeclaration = true;
                             break;
                         }
                         i++;
-                    }
-                    var j = paranthesis;
-                    while (text[j] == " " && text[j] != "\n") {
-                        j--;
-                    }
-                    if (isFunction && (!isAlpha(text[j - 1]) || text[cursorPosition - 1] != "\n" || text[j - 1] != " ")) {
-                        console.log (text[j - 1]);
-                        isFunction = false;
                     }
                     if (isFunction && isFunctionDeclaration) {
                         console.log ("Is declaration")
@@ -292,6 +287,6 @@ function setupTypewriter(t, content, codeSample) {
     var typer = document.getElementById('typewriter');
     //First argument is the location of the text to be displayed. The second argument is the location of the text that you want to be displayed. The third
     //is a boolean value indicating whether it is a code sample and should be syntax highlighted or not.
-    typewriter = setupTypewriter(typewriter, typewriter, true);
+    typewriter = setupTypewriter(typer, typer, true);
 
     typewriter.type();
