@@ -259,7 +259,6 @@ function parseString (str) {
     //     tokenCount: 0
     // }
     var comment, multiComment, string, functionText, boolean, primative, special, operator, seperator, keyword, number;
-    var whitespaceObject = null;
     while (i < str.length) {
         if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
@@ -352,30 +351,35 @@ function parseString (str) {
             console.log("Created keyword object");
         }
         // Check for whitespace
-        else if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
-            whitespaceObject = {
-                tokenName: " ",
-                tokenColor: "white",
-                tokenCount: 1
-            };
-            i += 1;
-            console.log("Created whitespace object");
-        }
-        else if (str[i] === " " && whitespaceObject !== null && whitespaceObject !== undefined) {
-            whitespaceObject.tokenCount += 1;
-            i += 1;
-            console.log("Whitespace iteration");
-        }
-        else if (str[i] !== " " && whitespaceObject !== null && whitespaceObject !== undefined) {
-            tokens.push(whitespaceObject);
-            whitespaceObject = undefined;
-            console.log("Whitespace object pushed");
-            continue;
-        }
+        // else if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
+        //     whitespaceObject = {
+        //         tokenName: " ",
+        //         tokenColor: "white",
+        //         tokenCount: 1
+        //     };
+        //     i += 1;
+        //     console.log("Created whitespace object");
+        // }
+        // else if (str[i] === " " && whitespaceObject !== null && whitespaceObject !== undefined) {
+        //     whitespaceObject.tokenCount += 1;
+        //     i += 1;
+        //     console.log("Whitespace iteration");
+        // }
+        // else if (str[i] !== " " && whitespaceObject !== null && whitespaceObject !== undefined) {
+        //     tokens.push(whitespaceObject);
+        //     whitespaceObject = undefined;
+        //     console.log("Whitespace object pushed");
+        //     continue;
+        // }
         else {
+        	tokens.push({
+        		tokenName: str[i],
+        		tokenColor: "white",
+        		tokenCount: 1
+        	});
+        	console.log("Pushed other");
         	i += 1;
         }
-        console.log(whitespaceObject);
     }
     return tokens;
 }
