@@ -17,7 +17,7 @@ var escapeCharacterColor = "violet";
 var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">"];
 var operatorColor = "red";
 var leftToAdd = "";
-var isString = false;
+//var isString = false;
 var numberColor = "violet"
 var stringMatchingQuote = undefined;
 var booleans = ["true", "false", "True", "False"];
@@ -30,7 +30,7 @@ var otherTypes = ["String", "string"];
 var otherTypeColor = "blue";
 var functionDeclarationColor = "green"
 var declarationParameterColor = "orange";
-var isSingleLineComment = false;
+//var isSingleLineComment = false;
 var commentColor = "grey";
 var singleLineComment = "//";
 var multiLineComment = "/*";
@@ -73,7 +73,10 @@ function htmlUnescape(str){
         .replace(/&gt;/g, '>')
         .replace(/&amp;/g, '&');
 }
-
+function isValidOperand(ch) {
+	if (isAlphaNumeric(ch) || ch === "_" || ch === "$") return true;
+	return false;
+}
 // Function that checks if something is a keyword. Returns -1 if it is not.
 function isKeyword (str, index) {
     for (var i = 0; i < keywords.length; i++) {
@@ -86,9 +89,11 @@ function isKeyword (str, index) {
 function isSingleLineComment (str, index) {
     if (str.substr(index, singleLineComment.length) === singleLineComment) {
         var newlineIndex = str.indexOf(newline, index);
-        if (newLineIndex !== -1) {
-            // Plus 1 to include the newline at the end
+        if (newlineIndex !== -1) {
             return str.substring(index, newlineIndex + 1);
+        }
+        else {
+        	return str.substring(index, str.length);
         }
     }
     // Return -1 if not comment
@@ -98,14 +103,14 @@ function isMultiLineComment (str, index) {
     if (str.substr(index, multiLineComment.length) === multiLineComment) {
         var indexOfEnd = str.indexOf(multiLineCommentEnd, index);
         if (indexOfEnd !== -1) {
-            return str.substring(index, indexOfEnd + 1);
+            return str.substring(index, indexOfEnd + multiLineComment.length);
         }
     }
     return -1;
 }
 function isOperator (str, index) {
     for (var i = 0; i < operators.length; i++) {
-        if (str.substr(index, operators[i].length) === operators[i]) {
+        if (str.substr(index, operators[i].length) === operators[i] && isValidOperand(str[index - 1]) && isValidOperand(str[index + operators[i].length + 1])) {
             return operators[i];
         }
     }
@@ -138,10 +143,10 @@ function isBoolean (str, index) {
     return -1;
 }
 
-function isPrimativeType (str, index) {
-    for (var i = 0; i < primatives.length; i++) {
-        if (str.substr(index, primatives[i].length) === primatives[i]) {
-            return primatives[i];
+function isPrimitiveType (str, index) {
+    for (var i = 0; i < primitiveTypes.length; i++) {
+        if (str.substr(index, primitiveTypes[i].length) === primitiveTypes[i]) {
+            return primitiveTypes[i];
         }
     }
     return -1;
@@ -237,6 +242,7 @@ function isFunction (str, index) {
         }
         return -1;
     }
+    return -1;
 }
 
 /* spanObject = {
@@ -255,28 +261,14 @@ function parseString (str) {
     var comment, multiComment, string, functionText, boolean, primative, special, operator, seperator, keyword, number;
     var whitespaceObject = null;
     while (i < str.length) {
-        // Check for whitespace
-        if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
-            whitespaceObject = {
-                tokenName: " ",
-                tokenColor: "white",
-                tokenCount: 1
-            };
-        }
-        else if (str[i] === " ") {
-            whitespaceObject.tokenCount += 1;
-        }
-        else if (str[i] !== " ") {
-            tokens.push(whitespaceObject);
-            whitespaceObject = null;
-        }
-        else if ((comment = isSingleLineComment(str, i)) !== -1) {
+        if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
                 tokenName: comment,
                 tokenColor: commentColor,
                 tokenCount: 1
             });
             i += comment.length;
+            console.log("Created single comment object");
         }
         else if ((multiComment = isMultiLineComment(str, i)) !== -1) {
             tokens.push({
@@ -285,6 +277,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += multiComment.length;
+            console.log("Created multi comment object");
         }
         else if ((string = isString(str, i)) !== -1) {
             tokens.push({
@@ -293,6 +286,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += string.length;
+            console.log("Created string object");
         }
         else if ((functionText = isFunction(str, i)) !== -1) {
             tokens.push({
@@ -301,6 +295,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += functionText.length;
+            console.log("Created function object");
         }
         else if ((boolean = isBoolean(str, i)) !== -1) {
             tokens.push({
@@ -309,14 +304,16 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += boolean.length;
+            console.log("Created boolean object");
         }
-        else if ((primative = isPrimative(str, i)) !== -1) {
+        else if ((primitive = isPrimitiveType(str, i)) !== -1) {
             tokens.push({
-                tokenName: primative,
-                tokenColor: primativeColor,
+                tokenName: primitive,
+                tokenColor: primitiveTypeColor,
                 tokenCount: 1
             });
-            i += primative.length;
+            i += primitive.length;
+            console.log("Created primative object");
         }
         else if ((special = isSpecial(str, i)) !== -1) {
             tokens.push({
@@ -325,6 +322,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += special.length;
+            console.log("Created special object");
         }
         else if ((operator = isOperator(str, i)) !== -1) {
             tokens.push({
@@ -332,6 +330,8 @@ function parseString (str) {
                 tokenColor: operatorColor,
                 tokenCount: 1
             });
+            i += operator.length;
+            console.log("Created operator object");
         }
         else if ((seperator = isSeperator(str, i)) !== -1) {
             tokens.push({
@@ -340,6 +340,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += seperator.length;
+            console.log("Created seperator object");
         }
         else if ((keyword = isKeyword(str, i)) !== -1) {
             tokens.push({
@@ -348,8 +349,35 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += keyword.length;
+            console.log("Created keyword object");
         }
+        // Check for whitespace
+        else if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
+            whitespaceObject = {
+                tokenName: " ",
+                tokenColor: "white",
+                tokenCount: 1
+            };
+            i += 1;
+            console.log("Created whitespace object");
+        }
+        else if (str[i] === " " && whitespaceObject !== null && whitespaceObject !== undefined) {
+            whitespaceObject.tokenCount += 1;
+            i += 1;
+            console.log("Whitespace iteration");
+        }
+        else if (str[i] !== " " && whitespaceObject !== null && whitespaceObject !== undefined) {
+            tokens.push(whitespaceObject);
+            whitespaceObject = undefined;
+            console.log("Whitespace object pushed");
+            continue;
+        }
+        else {
+        	i += 1;
+        }
+        console.log(whitespaceObject);
     }
+    return tokens;
 }
 
 //A function that counts the number of spaces in a line of text ignoring multiple between letters;
@@ -582,9 +610,11 @@ function setupTypewriter(t, content, codeSample) {
             type: type
         };
     }
-    var typer = document.getElementById('typewriter');
+    var arr = parseString("int i;/*Hello there*/ // Hi there\n False");
+    console.log(arr);
+    //var typer = document.getElementById('typewriter');
     //First argument is the location of the text to be displayed. The second argument is the location of the text that you want to be displayed. The third
     //is a boolean value indicating whether it is a code sample and should be syntax highlighted or not.
-    typewriter = setupTypewriter(typer, typer, true);
+    //typewriter = setupTypewriter(typer, typer, true);
 
-    typewriter.type();
+    //typewriter.type();
