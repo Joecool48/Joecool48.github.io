@@ -2,6 +2,44 @@ var responses = ["What took you so long?\nI've been sitting here for seconds.\nC
 "Why hello there.\nWelcome!",
 "Hmmm, I swear I've seen you before...\nHave we met?\nI may be mistaken.\nForget I mentioned it."];
 
+// Configuration Variables
+
+var plainTextColor = "white";
+var seperators = [";", ",",".", ":", "[", "]", "{", "}", "(", ")"];
+var seperatorColor = "white";
+var functionColor = "blue";
+var keywords = ["new", "for", "if", "else", "while", "break", "continue", "return", "class", "struct", "function", "goto", "static", "public", "private", "protected", "void"]; //...
+var keywordColor = "red";
+var stringColor = "yellow";
+//Figure out how to implement escape characters correctly
+var escapeCharacters = ["\n", "\t", "\'", "\"", "\\"];
+var escapeCharacterColor = "violet";
+var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">"];
+var operatorColor = "red";
+var leftToAdd = "";
+var isString = false;
+var numberColor = "violet"
+var stringMatchingQuote = undefined;
+var booleans = ["true", "false", "True", "False"];
+var booleanColor = "magenta";
+var specialValues = ["null", "undefined"];
+var specialValueColor = "violet";
+var primitiveTypes = ["int", "char", "bool", "boolean", "float", "double", "short", "long", "byte"];
+var primitiveTypeColor = "magenta";
+var otherTypes = ["String", "string"];
+var otherTypeColor = "blue";
+var functionDeclarationColor = "green"
+var declarationParameterColor = "orange";
+var isSingleLineComment = false;
+var commentColor = "grey";
+var singleLineComment = "//";
+var multiLineComment = "/*";
+var multiLineCommentEnd = "*/";
+var newline = "\n";
+
+
+
+
 // Function that checks if something is a keyword. Returns -1 if it is not.
 function isKeyword (str, index) {
     for (var i = 0; i < keywords.length; i++) {
@@ -57,20 +95,65 @@ function isSeperator (str, index) {
     return -1;
 }
 
+function isBoolean (str, index) {
+    for (var i = 0; i < booleans.length; i++) {
+        if (str.substring(index, booleans[i].length) === booleans[i]) {
+            return booleans[i];
+        }
+    }
+    return -1;
+}
+
+function isPrimativeType (str, index) {
+    for (var i = 0; i < primatives.length; i++) {
+        if (str.substring(index, primatives[i].length) === primatives[i]) {
+            return primatives[i];
+        }
+    }
+    return -1;
+}
+
+function isSpecial (str, index) {
+    for (var i = 0; i < specialValues.length; i++) {
+        if (str.substring(index, specialValues[i].length) === specialValues[i]) {
+            return specialValues[i];
+        }
+    }
+    return -1;
+}
+
 function isFunction (str, index) {
+    //Valid function name first character
     if (isAlpha(str[index]) || str[index] === "_" || str[index] === "$") {
         var indexOfSpace = str.indexOf(" ", index);
         var indexOfLeftParen = str.indexOf("(", index);
         var indexOfRightParen = str.indexOf(")", index);
         var indexOfNewline = str.indexOf("\n", index);
-        if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline)
+        if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline) {
+            var endIndex = index + 1;
+            while (isAlphaNumeric(str[endIndex]) || str[endIndex] === "_" || str[endIndex] === "$") {
+                endIndex++;
+            }
+            if (str[endIndex] === "(" && endIndex === indexOfLeftParen) {
+                return str.substring(index, endIndex);
+            }
+            var countSpaces = endIndex;
+            while (str[countSpaces] === " ") {
+                countSpaces++;
+            }
+            if (str[countSpaces] === "(" && countSpaces === indexOfLeftParen) {
+                return str.substring(index, endIndex);
+            }
+        }
+        return -1;
     }
 }
-spanObject = {
+
+/* spanObject = {
     token: "Tokenname",
     count: "Count",
     color: "color"
-};
+}; */
 function parseString (str) {
     var tokens = [];
     var i = 0;
@@ -117,11 +200,40 @@ function parseString (str) {
                 tokenName: string,
                 tokenColor: stringColor,
                 tokenCount: 1
-            })
+            });
             i += string.length;
         }
         else if ((var functionText = isFunction(str, i)) !== -1) {
-
+            tokens.push({
+                tokenName: functionText,
+                tokenColor: functionColor,
+                tokenCount: 1
+            });
+            i += functionText.length;
+        }
+        else if ((var boolean = isBoolean(str, i)) !== -1) {
+            tokens.push({
+                tokenName: boolean,
+                tokenColor: booleanColor,
+                tokenCount: 1
+            });
+            i += boolean.length;
+        }
+        else if ((var primative = isPrimative(str, i)) !== -1) {
+            tokens.push({
+                tokenName: primative,
+                tokenColor: primativeColor,
+                tokenCount: 1
+            });
+            i += primative.length;
+        }
+        else if ((var special = isSpecial(str, i)) !== -1) {
+            tokens.push({
+                tokenName: special,
+                tokenColor: specialValueColor,
+                tokenCount: 1
+            });
+            i += special.length;
         }
         else if ((var operator = isOperator(str, i)) !== -1) {
             tokens.push({
@@ -198,38 +310,6 @@ function checkSpaces (text) {
     return spaceOccurences;
 }
 
-var plainTextColor = "white";
-var seperators = [";", ",",".", ":", "[", "]", "{", "}", "(", ")"];
-var seperatorColor = "white";
-var functionColor = "blue";
-var keywords = ["new", "for", "if", "else", "while", "break", "continue", "return", "class", "struct", "function", "goto", "static", "public", "private", "protected", "void"]; //...
-var keywordColor = "red";
-var stringColor = "yellow";
-//Figure out how to implement escape characters correctly
-var escapeCharacters = ["\n", "\t", "\'", "\"", "\\"];
-var escapeCharacterColor = "violet";
-var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">"];
-var operatorColor = "red";
-var leftToAdd = "";
-var isString = false;
-var numberColor = "violet"
-var stringMatchingQuote = undefined;
-var booleans = ["true", "false", "True", "False"];
-var booleanColor = "magenta";
-var specialValues = ["null", "undefined"];
-var specialValueColor = "violet";
-var primitiveTypes = ["int", "char", "bool", "boolean", "float", "double", "short", "long", "byte"];
-var primitiveTypeColor = "magenta";
-var otherTypes = ["String", "string"];
-var otherTypeColor = "blue";
-var functionDeclarationColor = "green"
-var declarationParameterColor = "orange";
-var isSingleLineComment = false;
-var commentColor = "grey";
-var singleLineComment = "//";
-var multiLineComment = "/*";
-var multiLineCommentEnd = "*/";
-var newline = "\n";
 function setupTypewriter(t, content, codeSample) {
         var text = htmlUnescape (content.innerHTML);
         content.innerHTML = "";
