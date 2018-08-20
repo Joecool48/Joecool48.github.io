@@ -1,6 +1,154 @@
 var responses = ["What took you so long?\nI've been sitting here for seconds.\nCouldn't you have been any faster?\nI had all these code samples picked out, and you just decided to not show up.\nI mean, you were completely ignoring me.\nWhatever\nJust click on a link or something...\nI don't care.\n",
 "Why hello there.\nWelcome!",
 "Hmmm, I swear I've seen you before...\nHave we met?\nI may be mistaken.\nForget I mentioned it."];
+
+// Function that checks if something is a keyword. Returns -1 if it is not.
+function isKeyword (str, index) {
+    for (var i = 0; i < keywords.length; i++) {
+        if (str.substr(index, keywords[i].length) === keywords[i] &&
+            !isAlphaNumeric(str[index - 1]) && !isAlphaNumeric(str[index + keywords[i].length])) return keywords[i];
+    }
+    return -1;
+}
+
+function isSingleLineComment (str, index) {
+    if (str.substr(index, singleLineComment.length) === singleLineComment) {
+        var newlineIndex = str.indexOf(newline, index);
+        if (newLineIndex !== -1) {
+            // Plus 1 to include the newline at the end
+            return str.substring(index, newlineIndex + 1);
+        }
+    }
+    // Return -1 if not comment
+    return -1;
+}
+function isMultiLineComment (str, index) {
+    if (str.substr(index, multiLineComment.length) === multiLineComment) {
+        var indexOfEnd = str.indexOf(multiLineCommentEnd, index);
+        if (indexOfEnd !== -1) {
+            return str.substring(index, indexOfEnd + 1);
+        }
+    }
+    return -1;
+}
+function isOperator (str, index) {
+    for (var i = 0; i < operators.length; i++) {
+        if (str.substr(index, operators[i].length) === operators[i]) {
+            return operators[i];
+        }
+    }
+    return -1;
+}
+function isString (str, index) {
+    if (str[index] === '"' || str[index] === "'") {
+        var indexMatchingQuote = str.indexOf(str[index], index);
+        if (indexMatchingQuote !== -1) {
+            return str.substring(index, indexMatchingQuote + 1);
+        }
+    }
+    return -1;
+}
+function isSeperator (str, index) {
+    for (var i = 0; i < seperators.length; i++) {
+        if (str.substring(index, seperators[i].length) === seperators[i]) {
+            return seperators[i];
+        }
+    }
+    return -1;
+}
+
+function isFunction (str, index) {
+    if (isAlpha(str[index]) || str[index] === "_" || str[index] === "$") {
+        var indexOfSpace = str.indexOf(" ", index);
+        var indexOfLeftParen = str.indexOf("(", index);
+        var indexOfRightParen = str.indexOf(")", index);
+        var indexOfNewline = str.indexOf("\n", index);
+        if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline)
+    }
+}
+spanObject = {
+    token: "Tokenname",
+    count: "Count",
+    color: "color"
+};
+function parseString (str) {
+    var tokens = [];
+    var i = 0;
+    // var whitespaceObject = {
+    //     tokenName: " ",
+    //     tokenColor: "white",
+    //     tokenCount: 0
+    // }
+    var whitespaceObject = null;
+    while (i < str.length) {
+        // Check for whitespace
+        if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
+            whitespaceObject = {
+                tokenName: " ",
+                tokenColor: "white",
+                tokenCount: 1
+            };
+        }
+        else if (str[i] === " " && countWhitespace !== 0) {
+            whitespaceObject.tokenCount += 1;
+        }
+        else if (str[i] !== " " && countWhitespace !== 0) {
+            tokens.push(whitespaceObject);
+            whitespaceObject = null;
+        }
+        else if ((var comment = isSingleLineComment(str, i)) !== -1) {
+            tokens.push({
+                tokenName: comment,
+                tokenColor: commentColor,
+                tokenCount: 1
+            });
+            i += comment.length;
+        }
+        else if ((var multiComment = isMultiLineComment(str, i)) !== -1) {
+            tokens.push({
+                tokenName: multiComment,
+                tokenColor: commentColor,
+                tokenCount: 1
+            });
+            i += multiComment.length;
+        }
+        else if ((var string = isString(str, i)) !== -1) {
+            tokens.push({
+                tokenName: string,
+                tokenColor: stringColor,
+                tokenCount: 1
+            })
+            i += string.length;
+        }
+        else if ((var functionText = isFunction(str, i)) !== -1) {
+
+        }
+        else if ((var operator = isOperator(str, i)) !== -1) {
+            tokens.push({
+                tokenName: operator,
+                tokenColor: operatorColor,
+                tokenCount: 1
+            });
+        }
+        else if ((var seperator = isSeperator(str, i)) !== -1) {
+            tokens.push({
+                tokenName: seperator,
+                tokenColor: seperatorColor,
+                tokenCount: 1
+            });
+            i += seperator.length;
+        }
+        else if ((var keyword = isKeyword(str, i)) !== -1) {
+            tokens.push({
+                tokenName: keyword,
+                tokenColor: keywordColor,
+                tokenCount: 1
+            });
+            i += keyword.length;
+        }
+    }
+}
+
 function addSpan (text, element, color) {
     newSpan = document.createElement ("span");
     newSpan.setAttribute ("class", color);
@@ -13,6 +161,9 @@ var isAlpha = function(ch){
 }
 var isNumber = function (num) {
     return /^[0-9]$/i.test(num);
+}
+var isAlphaNumeric = function(ch) {
+    return isNumber(ch) || isAlpha(ch);
 }
 function htmlEscape(str) {
     return str
@@ -46,6 +197,7 @@ function checkSpaces (text) {
     }
     return spaceOccurences;
 }
+
 var plainTextColor = "white";
 var seperators = [";", ",",".", ":", "[", "]", "{", "}", "(", ")"];
 var seperatorColor = "white";
@@ -72,6 +224,12 @@ var otherTypes = ["String", "string"];
 var otherTypeColor = "blue";
 var functionDeclarationColor = "green"
 var declarationParameterColor = "orange";
+var isSingleLineComment = false;
+var commentColor = "grey";
+var singleLineComment = "//";
+var multiLineComment = "/*";
+var multiLineCommentEnd = "*/";
+var newline = "\n";
 function setupTypewriter(t, content, codeSample) {
         var text = htmlUnescape (content.innerHTML);
         content.innerHTML = "";
@@ -97,7 +255,8 @@ function setupTypewriter(t, content, codeSample) {
                 cursorPosition += 1;
                 isPlainText = false;
             }
-            //Check to see if it is a standalone int or float            
+            // Check to see if it is a commen
+            //Check to see if it is a standalone int or float
             else if (codeSample && cursorPosition > 0 && !isString && leftToAdd === "" && !isAlpha (text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + 1]) && isNumber(text[cursorPosition])) {
                 addSpan (text[cursorPosition], t, numberColor);
                 cursorPosition += 1;
@@ -157,7 +316,7 @@ function setupTypewriter(t, content, codeSample) {
                             addSpan ("&gt;",t,operatorColor);
                         }
                         else {
-                            addSpan (operators[i], t, operatorColor);                            
+                            addSpan (operators[i], t, operatorColor);
                         }
 
                         cursorPosition += 1;
@@ -235,7 +394,7 @@ function setupTypewriter(t, content, codeSample) {
                         if (text[i] === '(' && spaces <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
                             paranthesis = i;
                             isFunction = true;
-                                
+
                         }
                         else if (text[i] === "{" && space <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
                             curlyBrace = i;
