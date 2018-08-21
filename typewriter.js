@@ -36,9 +36,43 @@ var singleLineComment = "//";
 var multiLineComment = "/*";
 var multiLineCommentEnd = "*/";
 var newline = "\n";
+var allowedNumCharsBefore = ["0x", "0"]; // etc
+var allowedNumCharsAfter = ["f", "l"]; // etc
 
+// Helper functions for parsing
 
-
+function addSpan (text, element, color) {
+    newSpan = document.createElement ("span");
+    newSpan.setAttribute ("class", color);
+    console.log (newSpan);
+    element.appendChild (newSpan);
+    newSpan.innerHTML = text;
+}
+var isAlpha = function(ch){
+    return /^[A-Z]$/i.test(ch);
+}
+var isNumber = function (num) {
+    return /^[0-9]$/i.test(num);
+}
+var isAlphaNumeric = function(ch) {
+    return isNumber(ch) || isAlpha(ch);
+}
+function htmlEscape(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+function htmlUnescape(str){
+    return str
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&');
+}
 
 // Function that checks if something is a keyword. Returns -1 if it is not.
 function isKeyword (str, index) {
@@ -88,7 +122,7 @@ function isString (str, index) {
 }
 function isSeperator (str, index) {
     for (var i = 0; i < seperators.length; i++) {
-        if (str.substring(index, seperators[i].length) === seperators[i]) {
+        if (str.substr(index, seperators[i].length) === seperators[i]) {
             return seperators[i];
         }
     }
@@ -97,7 +131,7 @@ function isSeperator (str, index) {
 
 function isBoolean (str, index) {
     for (var i = 0; i < booleans.length; i++) {
-        if (str.substring(index, booleans[i].length) === booleans[i]) {
+        if (str.substr(index, booleans[i].length) === booleans[i]) {
             return booleans[i];
         }
     }
@@ -106,7 +140,7 @@ function isBoolean (str, index) {
 
 function isPrimativeType (str, index) {
     for (var i = 0; i < primatives.length; i++) {
-        if (str.substring(index, primatives[i].length) === primatives[i]) {
+        if (str.substr(index, primatives[i].length) === primatives[i]) {
             return primatives[i];
         }
     }
@@ -115,11 +149,66 @@ function isPrimativeType (str, index) {
 
 function isSpecial (str, index) {
     for (var i = 0; i < specialValues.length; i++) {
-        if (str.substring(index, specialValues[i].length) === specialValues[i]) {
+        if (str.substr(index, specialValues[i].length) === specialValues[i]) {
             return specialValues[i];
         }
     }
     return -1;
+}
+
+function isANumber (str, index) {
+    var position = index;
+    var isValid = true;
+    var beforeIndexStart = -1;
+    var beforeIndexEnd = -1;
+    var afterIndexStart = -1;
+    var afterIndexEnd = -1;
+    var numberStart = -1;
+    var numberEnd = -1;
+    while (isValid) {
+        if (numberStart === -1 && isNumber(str[position])) {
+            numberStart = position;
+        }
+        else {
+            for (var i = 0; i < allowedNumCharsBefore.length; i++) {
+                if (str.substr(position, allowedNumCharsBefore[i].length) === allowedNumCharsBefore[i]) {
+                    if (beforeIndexStart !== -1) {
+                        isValid = false;
+                        break;
+                    }
+                    beforeIndexStart = position;
+                    position += allowedNumCharsBefore[i].length;
+                    beforeIndexEnd = position;
+                    break;
+                }
+            }
+            for (var i = 0; i < allowedNumCharsAfter.length; i++) {
+                if (str.substr(position, allowedNumCharsAfter[i].length) === allowedNumCharsAfter[i]) {
+                    if (afterIndexStart !== -1) {
+                        isValid = false;
+                        break;
+                    }
+                    afterIndexStart = position
+                    position += allowedNumCharsAfter[i].length;
+                    afterIndexEnd = postion;
+                    break;
+                }
+            }
+            // End of number
+            if (numberStart !== -1 && beforeIndexStart === -1 && afterIndexStart === -1 && !isNumber(str[position])) {
+                if (isNumber(str[position - 1])) {
+                    numberEnd = position - 1;
+                }
+                break;
+            }
+        }
+        position += 1;
+    }
+    // This part needs more work
+    if (!isValid) return -1;
+    //if (numberStart !== -1 && numberEnd !== -1 && ) {
+    //    if (beforeIndexStart !== -1 && )
+    //}
 }
 
 function isFunction (str, index) {
@@ -129,7 +218,8 @@ function isFunction (str, index) {
         var indexOfLeftParen = str.indexOf("(", index);
         var indexOfRightParen = str.indexOf(")", index);
         var indexOfNewline = str.indexOf("\n", index);
-        if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline) {
+        if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline
+            && (!isAlphaNumeric(str[index - 1]) && str[index - 1] !== "_" && str[index - 1] !== "$")) {
             var endIndex = index + 1;
             while (isAlphaNumeric(str[endIndex]) || str[endIndex] === "_" || str[endIndex] === "$") {
                 endIndex++;
@@ -162,6 +252,7 @@ function parseString (str) {
     //     tokenColor: "white",
     //     tokenCount: 0
     // }
+    var comment, multiComment, string, functionText, boolean, primative, special, operator, seperator, keyword, number;
     var whitespaceObject = null;
     while (i < str.length) {
         // Check for whitespace
@@ -172,14 +263,14 @@ function parseString (str) {
                 tokenCount: 1
             };
         }
-        else if (str[i] === " " && countWhitespace !== 0) {
+        else if (str[i] === " ") {
             whitespaceObject.tokenCount += 1;
         }
-        else if (str[i] !== " " && countWhitespace !== 0) {
+        else if (str[i] !== " ") {
             tokens.push(whitespaceObject);
             whitespaceObject = null;
         }
-        else if ((var comment = isSingleLineComment(str, i)) !== -1) {
+        else if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
                 tokenName: comment,
                 tokenColor: commentColor,
@@ -187,7 +278,7 @@ function parseString (str) {
             });
             i += comment.length;
         }
-        else if ((var multiComment = isMultiLineComment(str, i)) !== -1) {
+        else if ((multiComment = isMultiLineComment(str, i)) !== -1) {
             tokens.push({
                 tokenName: multiComment,
                 tokenColor: commentColor,
@@ -195,7 +286,7 @@ function parseString (str) {
             });
             i += multiComment.length;
         }
-        else if ((var string = isString(str, i)) !== -1) {
+        else if ((string = isString(str, i)) !== -1) {
             tokens.push({
                 tokenName: string,
                 tokenColor: stringColor,
@@ -203,7 +294,7 @@ function parseString (str) {
             });
             i += string.length;
         }
-        else if ((var functionText = isFunction(str, i)) !== -1) {
+        else if ((functionText = isFunction(str, i)) !== -1) {
             tokens.push({
                 tokenName: functionText,
                 tokenColor: functionColor,
@@ -211,7 +302,7 @@ function parseString (str) {
             });
             i += functionText.length;
         }
-        else if ((var boolean = isBoolean(str, i)) !== -1) {
+        else if ((boolean = isBoolean(str, i)) !== -1) {
             tokens.push({
                 tokenName: boolean,
                 tokenColor: booleanColor,
@@ -219,7 +310,7 @@ function parseString (str) {
             });
             i += boolean.length;
         }
-        else if ((var primative = isPrimative(str, i)) !== -1) {
+        else if ((primative = isPrimative(str, i)) !== -1) {
             tokens.push({
                 tokenName: primative,
                 tokenColor: primativeColor,
@@ -227,7 +318,7 @@ function parseString (str) {
             });
             i += primative.length;
         }
-        else if ((var special = isSpecial(str, i)) !== -1) {
+        else if ((special = isSpecial(str, i)) !== -1) {
             tokens.push({
                 tokenName: special,
                 tokenColor: specialValueColor,
@@ -235,14 +326,14 @@ function parseString (str) {
             });
             i += special.length;
         }
-        else if ((var operator = isOperator(str, i)) !== -1) {
+        else if ((operator = isOperator(str, i)) !== -1) {
             tokens.push({
                 tokenName: operator,
                 tokenColor: operatorColor,
                 tokenCount: 1
             });
         }
-        else if ((var seperator = isSeperator(str, i)) !== -1) {
+        else if ((seperator = isSeperator(str, i)) !== -1) {
             tokens.push({
                 tokenName: seperator,
                 tokenColor: seperatorColor,
@@ -250,7 +341,7 @@ function parseString (str) {
             });
             i += seperator.length;
         }
-        else if ((var keyword = isKeyword(str, i)) !== -1) {
+        else if ((keyword = isKeyword(str, i)) !== -1) {
             tokens.push({
                 tokenName: keyword,
                 tokenColor: keywordColor,
@@ -261,38 +352,6 @@ function parseString (str) {
     }
 }
 
-function addSpan (text, element, color) {
-    newSpan = document.createElement ("span");
-    newSpan.setAttribute ("class", color);
-    console.log (newSpan);
-    element.appendChild (newSpan);
-    newSpan.innerHTML = text;
-}
-var isAlpha = function(ch){
-    return /^[A-Z]$/i.test(ch);
-}
-var isNumber = function (num) {
-    return /^[0-9]$/i.test(num);
-}
-var isAlphaNumeric = function(ch) {
-    return isNumber(ch) || isAlpha(ch);
-}
-function htmlEscape(str) {
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-}
-function htmlUnescape(str){
-    return str
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&amp;/g, '&');
-}
 //A function that counts the number of spaces in a line of text ignoring multiple between letters;
 //So, "Hi      my          name is      bob" returns 4
 function checkSpaces (text) {
