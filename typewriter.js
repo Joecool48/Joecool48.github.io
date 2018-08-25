@@ -77,6 +77,11 @@ function isValidOperand(ch) {
 	if (isAlphaNumeric(ch) || ch === "_" || ch === "$") return true;
 	return false;
 }
+// Function to check to see if typewriter should speed up and skip unimportant characters
+function isTypewriterSkipChar(ch) {
+    if (ch === " " || ch === "\n" || ch === "\t") return true;
+    return false;
+}
 // Function that checks if something is a keyword. Returns -1 if it is not.
 function isKeyword (str, index) {
     for (var i = 0; i < keywords.length; i++) {
@@ -90,7 +95,7 @@ function isSingleLineComment (str, index) {
     if (str.substr(index, singleLineComment.length) === singleLineComment) {
         var newlineIndex = str.indexOf(newline, index);
         if (newlineIndex !== -1) {
-            return str.substring(index, newlineIndex + 1);
+            return str.substring(index, newlineIndex);
         }
         else {
         	return str.substring(index, str.length);
@@ -101,7 +106,7 @@ function isSingleLineComment (str, index) {
 }
 function isMultiLineComment (str, index) {
     if (str.substr(index, multiLineComment.length) === multiLineComment) {
-        var indexOfEnd = str.indexOf(multiLineCommentEnd, index);
+        var indexOfEnd = str.indexOf(multiLineCommentEnd, index + multiLineComment.length);
         if (indexOfEnd !== -1) {
             return str.substring(index, indexOfEnd + multiLineComment.length);
         }
@@ -160,7 +165,7 @@ function isSpecial (str, index) {
     }
     return -1;
 }
-
+// Number recognition still needs fixing
 function isANumber (str, index) {
     var position = index;
     var isValid = true;
@@ -193,16 +198,19 @@ function isANumber (str, index) {
                         isValid = false;
                         break;
                     }
-                    afterIndexStart = position
+                    afterIndexStart = position;
                     position += allowedNumCharsAfter[i].length;
                     afterIndexEnd = postion;
                     break;
                 }
             }
             // End of number
-            if (numberStart !== -1 && beforeIndexStart === -1 && afterIndexStart === -1 && !isNumber(str[position])) {
-                if (isNumber(str[position - 1])) {
-                    numberEnd = position - 1;
+            if (!isNumber(str[position])) {
+                if (numberStart === -1) {
+                    isValid = false;
+                }
+                else {
+                    numberEnd = position;
                 }
                 break;
             }
@@ -211,9 +219,19 @@ function isANumber (str, index) {
     }
     // This part needs more work
     if (!isValid) return -1;
-    //if (numberStart !== -1 && numberEnd !== -1 && ) {
-    //    if (beforeIndexStart !== -1 && )
-    //}
+    else {
+        var start = numberStart;
+        var end = numberEnd;
+        if (beforeIndexStart !== -1 && beforeIndexStart < numberStart) {
+            start = beforeIndexStart;
+        }
+        if (afterIndexStart !== -1 && afterIndexStart > numberEnd) {
+            end = afterIndexEnd;
+        }
+        console.log("Numberstart = " + start);
+        console.log("Numberend = " + end);
+        return str.substring(start, end);
+    }
 }
 
 function isFunction (str, index) {
@@ -223,6 +241,9 @@ function isFunction (str, index) {
         var indexOfLeftParen = str.indexOf("(", index);
         var indexOfRightParen = str.indexOf(")", index);
         var indexOfNewline = str.indexOf("\n", index);
+        console.log("IndexOfLeftParen = " + indexOfLeftParen);
+        console.log("IndexOfRightParen = " + indexOfRightParen);
+        console.log("IndexOfNewline = " + indexOfNewline);
         if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline
             && (!isAlphaNumeric(str[index - 1]) && str[index - 1] !== "_" && str[index - 1] !== "$")) {
             var endIndex = index + 1;
@@ -258,7 +279,7 @@ function parseString (str) {
     //     tokenColor: "white",
     //     tokenCount: 0
     // }
-    var comment, multiComment, string, functionText, boolean, primative, special, operator, seperator, keyword, number;
+    var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
     while (i < str.length) {
         if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
@@ -349,6 +370,16 @@ function parseString (str) {
             });
             i += keyword.length;
             console.log("Created keyword object");
+        }
+        else if ((number = isNumber(str, i)) !== -1) {
+            console.log(number);
+            tokens.push({
+                tokenName: number.toString(),
+                tokenColor: numberColor,
+                tokenCOunt: 1
+            });
+            i += number.length;
+            console.log("Created number object");
         }
         // Check for whitespace
         // else if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
@@ -614,7 +645,7 @@ function setupTypewriter(t, content, codeSample) {
             type: type
         };
     }
-    var arr = parseString("int i;/*Hello there*/ // Hi there\n False");
+    var arr = parseString("123");
     console.log(arr);
     //var typer = document.getElementById('typewriter');
     //First argument is the location of the text to be displayed. The second argument is the location of the text that you want to be displayed. The third
