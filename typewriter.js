@@ -39,13 +39,24 @@ var newline = "\n";
 var allowedNumCharsBefore = ["0x", "0"]; // etc
 var allowedNumCharsAfter = ["f", "l"]; // etc
 
+// To do list:
+// 1. Fix number parsing so that it correctly rejects invalids
+// 2. Add actual typewriter part
+
+
+
+
+
+
+
+
+
 // Helper functions for parsing
 
-function addSpan (text, element, color) {
+function addSpan (text, color) {
     newSpan = document.createElement ("span");
     newSpan.setAttribute ("class", color);
-    console.log (newSpan);
-    element.appendChild (newSpan);
+    this.appendChild (newSpan);
     newSpan.innerHTML = text;
 }
 var isAlpha = function(ch){
@@ -167,6 +178,7 @@ function isSpecial (str, index) {
 }
 // Number recognition still needs fixing
 function isANumber (str, index) {
+    console.log("In isNumber function");
     var position = index;
     var isValid = true;
     var beforeIndexStart = -1;
@@ -177,6 +189,7 @@ function isANumber (str, index) {
     var numberEnd = -1;
     while (isValid) {
         if (numberStart === -1 && isNumber(str[position])) {
+            console.log("Number start:" + position);
             numberStart = position;
         }
         else {
@@ -200,16 +213,18 @@ function isANumber (str, index) {
                     }
                     afterIndexStart = position;
                     position += allowedNumCharsAfter[i].length;
-                    afterIndexEnd = postion;
+                    afterIndexEnd = position;
                     break;
                 }
             }
             // End of number
             if (!isNumber(str[position])) {
                 if (numberStart === -1) {
+                    console.log("Invalid number");
                     isValid = false;
                 }
                 else {
+                    console.log("Number end at: " + position);
                     numberEnd = position;
                 }
                 break;
@@ -228,6 +243,8 @@ function isANumber (str, index) {
         if (afterIndexStart !== -1 && afterIndexStart > numberEnd) {
             end = afterIndexEnd;
         }
+        // Is invalid if other characters are to the right or left
+        if (isValidOperand(str[numberStart - 1]) || isValidOperand(str[numberEnd + 1])) return -1
         console.log("Numberstart = " + start);
         console.log("Numberend = " + end);
         return str.substring(start, end);
@@ -371,8 +388,8 @@ function parseString (str) {
             i += keyword.length;
             console.log("Created keyword object");
         }
-        else if ((number = isNumber(str, i)) !== -1) {
-            console.log(number);
+        /*else if ((number = isANumber(str, i)) !== -1) {
+            console.log(typeof(number));
             tokens.push({
                 tokenName: number.toString(),
                 tokenColor: numberColor,
@@ -380,28 +397,7 @@ function parseString (str) {
             });
             i += number.length;
             console.log("Created number object");
-        }
-        // Check for whitespace
-        // else if (str[i] === " " && (whitespaceObject === null || whitespaceObject === undefined)) {
-        //     whitespaceObject = {
-        //         tokenName: " ",
-        //         tokenColor: "white",
-        //         tokenCount: 1
-        //     };
-        //     i += 1;
-        //     console.log("Created whitespace object");
-        // }
-        // else if (str[i] === " " && whitespaceObject !== null && whitespaceObject !== undefined) {
-        //     whitespaceObject.tokenCount += 1;
-        //     i += 1;
-        //     console.log("Whitespace iteration");
-        // }
-        // else if (str[i] !== " " && whitespaceObject !== null && whitespaceObject !== undefined) {
-        //     tokens.push(whitespaceObject);
-        //     whitespaceObject = undefined;
-        //     console.log("Whitespace object pushed");
-        //     continue;
-        // }
+        }*/
         else {
         	tokens.push({
         		tokenName: str[i],
@@ -414,242 +410,175 @@ function parseString (str) {
     }
     return tokens;
 }
-
-//A function that counts the number of spaces in a line of text ignoring multiple between letters;
-//So, "Hi      my          name is      bob" returns 4
-function checkSpaces (text) {
-    var spaceOccurences = 0;
-    var ignoreSpaces = false;
-    for (i = 0; i < text.length; i++) {
-        if (text[i] == " " && !ignoreSpaces) {
-            spaceOccurences += 1;
-            ignoreSpaces = true;
-        }
-        else if (isAlpha(text[i]) || isNumber (text[i])) {
-            ignoreSpaces = false;
-        }
-    }
-    return spaceOccurences;
-}
-
-function setupTypewriter(t, content, codeSample) {
-        var text = htmlUnescape (content.innerHTML);
-        content.innerHTML = "";
-        var isPlainText = true;
-        var cursorPosition = 0;
-        var typeSpeed = 100;
-        var tempTypeSpeed = 0;
-        var color = "white";
-        var type = function() {
-            var isPlainText = true;
-            tempTypeSpeed = (Math.random() * typeSpeed) + 50;
-            //Check for space
-            if (text[cursorPosition] === " ") {
-                console.log ("Space found");
-                t.appendChild( document.createTextNode( '\u00A0' ) );
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            //Check for any characters that still need to be added
-            else if (codeSample && leftToAdd != "") {
-                addSpan (leftToAdd.slice(0,1), t, color);
-                leftToAdd = leftToAdd.slice(1);
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            // Check to see if it is a commen
-            //Check to see if it is a standalone int or float
-            else if (codeSample && cursorPosition > 0 && !isString && leftToAdd === "" && !isAlpha (text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + 1]) && isNumber(text[cursorPosition])) {
-                addSpan (text[cursorPosition], t, numberColor);
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            else if (codeSample && text[cursorPosition] === "." && isNumber (text[cursorPosition - 1]) && isNumber (text[cursorPosition - 1])) {
-                addSpan (text[cursorPosition], t, numberColor);
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            //Add the colored char that is part of the string
-            else if (codeSample && isString && leftToAdd == "") {
-                addSpan (text[cursorPosition], t, stringColor);
-                if (text[cursorPosition] === stringMatchingQuote) {
-                    isString = false;
-                }
-                isPlainText = false;
-                cursorPosition += 1;
-            }
-            //Test to see if the line is beginning as a string
-            else if (codeSample && (text[cursorPosition] === '"' || text[cursorPosition] === "'")) {
-                isString = true;
-                addSpan (text[cursorPosition], t, stringColor);
-                stringMatchingQuote = text[cursorPosition];
-                console.log ("Matching Quote: " + text[cursorPosition]);
-                cursorPosition += 1;
-                isPlainText = false;
-            }
-            else if (codeSample && leftToAdd == "") {
-                for (i = 0; i < escapeCharacters.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + escapeCharacters[i].length) == escapeCharacters[i]) {
-                        addSpan (escapeCharacters[i].slice (0,1),t,escapeCharacterColor);
-                        cursorPosition += 1;
-                        leftToAdd += escapeCharacters[i].slice (1);
-                        color = escapeCharacterColor;
-                        isPlainText = false;
-                        break;
+    function setupTypewriter(documentObject) {
+        var typewriter = {
+            destinationDocumentObject: documentObject,
+            typewriterSpeed: 100,
+            isRunning: false,
+            tokens: [],
+            textColor: "white",
+            syntaxHighlighting: true,
+            charPosition: 0,
+            currentToken: 0,
+            setSpeed: function (newSpeed) {
+                this.typewriterSpeed = newSpeed;
+            },
+            stop: function () {
+                this.isRunning = false;
+            },
+            parseString: function (str) {
+                this.tokens = [];
+                var i = 0;
+                var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
+                while (i < str.length) {
+                    if ((comment = isSingleLineComment(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: comment,
+                            tokenColor: commentColor
+                        });
+                        i += comment.length;
+                        console.log("Created single comment object");
+                    }
+                    else if ((multiComment = isMultiLineComment(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: multiComment,
+                            tokenColor: commentColor
+                        });
+                        i += multiComment.length;
+                        console.log("Created multi comment object");
+                    }
+                    else if ((string = isString(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: string,
+                            tokenColor: stringColor
+                        });
+                        i += string.length;
+                        console.log("Created string object");
+                    }
+                    else if ((functionText = isFunction(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: functionText,
+                            tokenColor: functionColor
+                        });
+                        i += functionText.length;
+                        console.log("Created function object");
+                    }
+                    else if ((boolean = isBoolean(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: boolean,
+                            tokenColor: booleanColor
+                        });
+                        i += boolean.length;
+                        console.log("Created boolean object");
+                    }
+                    else if ((primitive = isPrimitiveType(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: primitive,
+                            tokenColor: primitiveTypeColor
+                        });
+                        i += primitive.length;
+                        console.log("Created primative object");
+                    }
+                    else if ((special = isSpecial(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: special,
+                            tokenColor: specialValueColor
+                        });
+                        i += special.length;
+                        console.log("Created special object");
+                    }
+                    else if ((operator = isOperator(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: operator,
+                            tokenColor: operatorColor
+                        });
+                        i += operator.length;
+                        console.log("Created operator object");
+                    }
+                    else if ((seperator = isSeperator(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: seperator,
+                            tokenColor: seperatorColor
+                        });
+                        i += seperator.length;
+                        console.log("Created seperator object");
+                    }
+                    else if ((keyword = isKeyword(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: keyword,
+                            tokenColor: keywordColor
+                        });
+                        i += keyword.length;
+                        console.log("Created keyword object");
+                    }
+                    else if ((number = isANumber(str, i)) !== -1) {
+                        console.log(typeof(number));
+                        this.tokens.push({
+                            tokenName: number.toString(),
+                            tokenColor: numberColor
+                        });
+                        i += number.length;
+                        console.log("Created number object");
+                    }
+                    else {
+                    	this.tokens.push({
+                    		tokenName: str[i],
+                    		tokenColor: "white"
+                    	});
+                    	console.log("Pushed other");
+                    	i += 1;
                     }
                 }
-                for (i = 0; i < keywords.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + keywords[i].length) === keywords[i]) {
-                        color = keywordColor;
-                        addSpan (keywords[i].slice(0,1),t,keywordColor);
-                        leftToAdd = keywords[i].slice (1);
-                        cursorPosition += 1;
-                        isPlainText = false;
-                        break;
+            },
+            clearScreen: function () {
+                this.destinationDocumentObject.innerHTML = "";
+            },
+            parseHtml: function(html) {
+                this.parseString(htmlUnescape(html.innerHTML));
+            },
+            typeWaitTime: function () {
+                return Math.round(Math.random() * this.typeSpeed) + 50;
+            },
+            skipTypeWaitTime: function () {
+                return Math.round(Math.random() * this.typeSpeed / 2);
+            },
+            typeChar: function () {
+                console.log("typeChar: " + typeof(this.tokens));
+                if (this.currentToken < this.tokens.length) {
+                    // Go to a new token
+                    if (this.syntaxHighlighting) {
+                        this.destinationDocumentObject.addSpan(this.tokens[currentToken][charPosition].tokenName, this.tokens[currentToken][charPosition].tokenColor);
                     }
-                }
-                //Check for operators
-                for (i = 0; i < operators.length; i++) {
-                    if (text[cursorPosition] === operators[i]) {
-                        if (operators[i] === "<") {
-                            addSpan ("&lt;",t,operatorColor);
-                        }
-                        else if (operators[i] === ">") {
-                            addSpan ("&gt;",t,operatorColor);
-                        }
-                        else {
-                            addSpan (operators[i], t, operatorColor);
-                        }
-
-                        cursorPosition += 1;
-                        isPlainText = false;
-                        break;
-                    }
-                }
-                //Check for seperators
-                for (i = 0; i < seperators.length; i++) {
-                    if (text[cursorPosition] === seperators[i]) {
-                        addSpan (seperators[i], t, seperatorColor);
-                        cursorPosition += 1;
-                        isPlainText = false;
-                        break;
-                    }
-                }
-                for (i = 0; i < booleans.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + booleans[i].length) === booleans[i]) {
-                        addSpan (booleans[i].slice (0,1),t,booleanColor);
-                        cursorPosition += 1;
-                        leftToAdd += booleans[i].slice (1);
-                        color = booleanColor;
-                        isPlainText = false;
-                        break;
-                    }
-                }
-                // for (i = 0; i < specialValues.length; i++) {
-                //     if (text.slice (cursorPosition, cursorPosition + specialValues[i].length) === specialValues[i]) {
-                //         console.log ("Found " +  specialValues[i]);
-                //         addSpan (specialValues[i].slice (0,1),t,specialValueColor);
-                //         cursorPosition += 1;
-                //         leftToAdd += specialValues[i].slice (1);
-                //         color = specialValueColor;
-                //         isPlainText = false;
-                //         break;
-                //     }
-                // }
-                for (i = 0; i < primitiveTypes.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + primitiveTypes[i].length) === primitiveTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + primitiveTypes[i].length])) {
-                        addSpan (primitiveTypes[i].slice (0,1),t,primitiveTypeColor);
-                        cursorPosition += 1;
-                        leftToAdd += primitiveTypes[i].slice (1);
-                        color = primitiveTypeColor;
-                        isPlainText = false;
-                        break;
-                    }
-                }
-                for (i = 0; i < otherTypes.length; i++) {
-                    if (text.slice (cursorPosition, cursorPosition + otherTypes[i].length) === otherTypes[i] && !isAlpha(text[cursorPosition - 1]) && !isAlpha (text[cursorPosition + otherTypes[i].length])) {
-                        addSpan (otherTypes[i].slice (0,1),t,otherTypeColor);
-                        cursorPosition += 1;
-                        leftToAdd += otherTypes[i].slice (1);
-                        color = otherTypeColor;
-                        isPlainText = false;
-                        break;
-                    }
-                }
-                //Find function declarations by searching for parenthesis next to a character for a function.
-                //Also searches for the left curply brace to indicate a declaration of a function.
-                if (codeSample && isAlpha (text[cursorPosition]) && !isString && leftToAdd == "") {
-                    console.log ("Function check");
-                    var i = cursorPosition;
-                    var paranthesis = cursorPosition;
-                    var curlyBrace = cursorPosition;
-                    var isFunction = false;
-                    var isFunctionDeclaration = false;
-                    var lastNonSpace = -1;
-                    while (text[i] != "\n") {
-                        //Checks to make sure there are no spaces in between the function letters
-                        if (text[i] != " ") {
-                            lastNonSpace = text[i];
-                        }
-                        console.log (lastNonSpace)
-                        var spaces = checkSpaces (text.slice (cursorPosition, i));
-                        if (text[i] === '(' && spaces <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
-                            paranthesis = i;
-                            isFunction = true;
-
-                        }
-                        else if (text[i] === "{" && space <= 1 && (isAlpha (lastNonSpace) || isNumber (lastNonSpace))) {
-                            curlyBrace = i;
-                            isFunctionDeclaration = true;
-                            break;
-                        }
-                        i++;
-                    }
-                    if (isFunction && isFunctionDeclaration) {
-                        console.log ("Is declaration")
-                        isPlainText = false;
-                        addSpan (text[cursorPosition],t,functionDeclarationColor);
-                        cursorPosition += 1;
-                        leftToAdd = text.slice (cursorPosition,paranthesis);
-                        color = functionDeclarationColor;
-                    }
-                    else if (isFunction) {
-                        console.log ("Is function")
-                        isPlainText = false;
-                        addSpan (text[cursorPosition],t,functionColor);
-                        cursorPosition += 1;
-                        leftToAdd = text.slice (cursorPosition,paranthesis);
-                        color = functionColor;
+                    else {
+                        this.destinationDocumentObject.addSpan(this.tokens[currentToken][charPosition].tokenName, textColor);
                     }
 
                 }
-            }
-            if (isPlainText) {
-                color = plainTextColor;
-                t.innerHTML += text[cursorPosition];
-                cursorPosition += 1;
-
-            }
-            //Actual typewriter effect implemented
-            if (cursorPosition < text.length) {
-                setTimeout(type, tempTypeSpeed);
-            }
-            if (cursorPosition >= text.length - 1) {
-                function resetTimer () {
-                window.clearInterval(action);
+                charPosition += 1;
+                if (this.charPosition >= this.tokens[currentToken].length) {
+                    currentToken += 1;
+                    charPosition = 0;
                 }
+                if (this.currentToken >= this.tokens.length) {
+                    console.log("Reached end of token array");
+                }
+                else if (isTypewriterSkipChar(tokens[currentToken][charPosition].tokenName) && this.isRunning) {
+                    setTimeout(this.typeChar, this.skipTypeWaitTime());
+                }
+                else if (this.isRunning) {
+                    setTimeout(this.typeChar, this.typeWaitTime());
+                }
+            },
+            type: function () {
+                console.log("type: " + typeof(this.tokens));
+                console.log("this: " + this.currentToken);
+                this.typeChar();
+                if (this.tokens === []) return;
+                //setTimeout(this.typeChar, this.typeWaitTime());
             }
         };
-
-        return {
-            type: type
-        };
+        return typewriter;
     }
-    var arr = parseString("123");
-    console.log(arr);
-    //var typer = document.getElementById('typewriter');
-    //First argument is the location of the text to be displayed. The second argument is the location of the text that you want to be displayed. The third
-    //is a boolean value indicating whether it is a code sample and should be syntax highlighted or not.
-    //typewriter = setupTypewriter(typer, typer, true);
-
-    //typewriter.type();
+    var typewriter = setupTypewriter(document.getElementById("typewriter"));
+    typewriter.parseString("helloThere()\n");
+    typewriter.type();
