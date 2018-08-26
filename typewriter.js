@@ -53,10 +53,10 @@ var allowedNumCharsAfter = ["f", "l"]; // etc
 
 // Helper functions for parsing
 
-function addSpan (text, color) {
+function addSpan (elem, text, color) {
     newSpan = document.createElement ("span");
     newSpan.setAttribute ("class", color);
-    this.appendChild (newSpan);
+    elem.appendChild (newSpan);
     newSpan.innerHTML = text;
 }
 var isAlpha = function(ch){
@@ -85,7 +85,7 @@ function htmlUnescape(str){
         .replace(/&amp;/g, '&');
 }
 function isValidOperand(ch) {
-	if (isAlphaNumeric(ch) || ch === "_" || ch === "$") return true;
+	if (isAlphaNumeric(ch) || ch === "_" || ch === "$" || ch === " " || ch === "\n") return true;
 	return false;
 }
 // Function to check to see if typewriter should speed up and skip unimportant characters
@@ -413,7 +413,7 @@ function parseString (str) {
     function setupTypewriter(documentObject) {
         var typewriter = {
             destinationDocumentObject: documentObject,
-            typewriterSpeed: 100,
+            typeSpeed: 100,
             isRunning: false,
             tokens: [],
             textColor: "white",
@@ -542,43 +542,42 @@ function parseString (str) {
             skipTypeWaitTime: function () {
                 return Math.round(Math.random() * this.typeSpeed / 2);
             },
-            typeChar: function () {
-                console.log("typeChar: " + typeof(this.tokens));
+            typeChar: function() {
                 if (this.currentToken < this.tokens.length) {
                     // Go to a new token
                     if (this.syntaxHighlighting) {
-                        this.destinationDocumentObject.addSpan(this.tokens[currentToken][charPosition].tokenName, this.tokens[currentToken][charPosition].tokenColor);
+                        addSpan(this.destinationDocumentObject, this.tokens[this.currentToken].tokenName[this.charPosition], this.tokens[this.currentToken].tokenColor);
                     }
                     else {
-                        this.destinationDocumentObject.addSpan(this.tokens[currentToken][charPosition].tokenName, textColor);
+                        addSpan(this.destinationDocumentObject, this.tokens[this.currentToken][this.charPosition].tokenName, this.textColor);
                     }
-
                 }
-                charPosition += 1;
-                if (this.charPosition >= this.tokens[currentToken].length) {
-                    currentToken += 1;
-                    charPosition = 0;
+                this.charPosition += 1;
+                if (this.charPosition >= this.tokens[this.currentToken].tokenName.length) {
+                    this.currentToken += 1;
+                    this.charPosition = 0;
                 }
                 if (this.currentToken >= this.tokens.length) {
                     console.log("Reached end of token array");
                 }
-                else if (isTypewriterSkipChar(tokens[currentToken][charPosition].tokenName) && this.isRunning) {
-                    setTimeout(this.typeChar, this.skipTypeWaitTime());
+                else if (isTypewriterSkipChar(this.tokens[this.currentToken].tokenName[this.charPosition]) && this.isRunning) {
+                    var that = this;
+                    setTimeout(function(){that.typeChar()}, this.skipTypeWaitTime());
                 }
                 else if (this.isRunning) {
-                    setTimeout(this.typeChar, this.typeWaitTime());
+                    var that = this;
+                    setTimeout(function(){that.typeChar()}, this.typeWaitTime());
                 }
             },
             type: function () {
-                console.log("type: " + typeof(this.tokens));
-                console.log("this: " + this.currentToken);
-                this.typeChar();
                 if (this.tokens === []) return;
-                //setTimeout(this.typeChar, this.typeWaitTime());
+                this.isRunning = true;
+                var that = this;
+                setTimeout(function() {that.typeChar()}, this.typeWaitTime());
             }
         };
         return typewriter;
     }
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
-    typewriter.parseString("helloThere()\n");
+    typewriter.parseString("helloThere()\nint i = 5;");
     typewriter.type();
