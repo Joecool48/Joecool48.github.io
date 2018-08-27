@@ -12,7 +12,7 @@ var keywords = ["new", "for", "if", "else", "while", "break", "continue", "retur
 var keywordColor = "red";
 var stringColor = "yellow";
 //Figure out how to implement escape characters correctly
-var escapeCharacters = ["\n", "\t", "\'", "\"", "\\"];
+var escapeCharacters = ["\\n", "\\t", "\\'", '\\"', "\\\\"];
 var escapeCharacterColor = "violet";
 var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">"];
 var operatorColor = "red";
@@ -126,7 +126,7 @@ function isMultiLineComment (str, index) {
 }
 function isOperator (str, index) {
     for (var i = 0; i < operators.length; i++) {
-        if (str.substr(index, operators[i].length) === operators[i] && isValidOperand(str[index - 1]) && isValidOperand(str[index + operators[i].length + 1])) {
+        if (str.substr(index, operators[i].length) === operators[i] && isValidOperand(str[index - 1]) && isValidOperand(str[index + operators[i].length])) {
             return operators[i];
         }
     }
@@ -134,12 +134,49 @@ function isOperator (str, index) {
 }
 function isString (str, index) {
     if (str[index] === '"' || str[index] === "'") {
-        var indexMatchingQuote = str.indexOf(str[index], index);
-        if (indexMatchingQuote !== -1) {
-            return str.substring(index, indexMatchingQuote + 1);
+        var indexMatchingQuote = str.indexOf(str[index], index + 1);
+        var matchingQuote = str[index];
+        if (indexMatchingQuote === -1) {
+            return [];
         }
+        tempTokens = [];
+        var i = index + 1;
+        tempTokens.push({
+            tokenName: str[index],
+            tokenColor: stringColor
+        });
+        while (str[i] !== matchingQuote && i < str.length) {
+            var escapeAdded = false;
+            for (var charIdx = 0; charIdx < escapeCharacters.length; charIdx++) {
+                if (str.substr(i, escapeCharacters[charIdx].length) === escapeCharacters[charIdx]) {
+                    escapeAdded = true;
+                    tempTokens.push({
+                        tokenName: escapeCharacters[charIdx],
+                        tokenColor: escapeCharacterColor
+                    });
+                    i += escapeCharacters[charIdx].length;
+                    break;
+                }
+            }
+            if (!escapeAdded) {
+                tempTokens.push({
+                    tokenName: str[i],
+                    tokenColor: stringColor
+                });
+                i += 1;
+            }
+
+        }
+        tempTokens.push({
+            tokenName: str[index],
+            tokenColor: stringColor
+        });
+        return tempTokens;
+        // if (indexMatchingQuote !== -1) {
+        //     return str.substring(index, indexMatchingQuote + 1);
+        // }
     }
-    return -1;
+    return [];
 }
 function isSeperator (str, index) {
     for (var i = 0; i < seperators.length; i++) {
@@ -178,7 +215,6 @@ function isSpecial (str, index) {
 }
 // Number recognition still needs fixing
 function isANumber (str, index) {
-    console.log("In isNumber function");
     var position = index;
     var isValid = true;
     var beforeIndexStart = -1;
@@ -189,7 +225,6 @@ function isANumber (str, index) {
     var numberEnd = -1;
     while (isValid) {
         if (numberStart === -1 && isNumber(str[position])) {
-            console.log("Number start:" + position);
             numberStart = position;
         }
         else {
@@ -220,11 +255,9 @@ function isANumber (str, index) {
             // End of number
             if (!isNumber(str[position])) {
                 if (numberStart === -1) {
-                    console.log("Invalid number");
                     isValid = false;
                 }
                 else {
-                    console.log("Number end at: " + position);
                     numberEnd = position;
                 }
                 break;
@@ -245,8 +278,6 @@ function isANumber (str, index) {
         }
         // Is invalid if other characters are to the right or left
         if (isValidOperand(str[numberStart - 1]) || isValidOperand(str[numberEnd + 1])) return -1
-        console.log("Numberstart = " + start);
-        console.log("Numberend = " + end);
         return str.substring(start, end);
     }
 }
@@ -258,9 +289,6 @@ function isFunction (str, index) {
         var indexOfLeftParen = str.indexOf("(", index);
         var indexOfRightParen = str.indexOf(")", index);
         var indexOfNewline = str.indexOf("\n", index);
-        console.log("IndexOfLeftParen = " + indexOfLeftParen);
-        console.log("IndexOfRightParen = " + indexOfRightParen);
-        console.log("IndexOfNewline = " + indexOfNewline);
         if (indexOfLeftParen < indexOfNewline && indexOfRightParen < indexOfNewline
             && (!isAlphaNumeric(str[index - 1]) && str[index - 1] !== "_" && str[index - 1] !== "$")) {
             var endIndex = index + 1;
@@ -305,7 +333,7 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += comment.length;
-            console.log("Created single comment object");
+
         }
         else if ((multiComment = isMultiLineComment(str, i)) !== -1) {
             tokens.push({
@@ -314,7 +342,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += multiComment.length;
-            console.log("Created multi comment object");
         }
         else if ((string = isString(str, i)) !== -1) {
             tokens.push({
@@ -323,7 +350,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += string.length;
-            console.log("Created string object");
         }
         else if ((functionText = isFunction(str, i)) !== -1) {
             tokens.push({
@@ -332,7 +358,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += functionText.length;
-            console.log("Created function object");
         }
         else if ((boolean = isBoolean(str, i)) !== -1) {
             tokens.push({
@@ -341,7 +366,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += boolean.length;
-            console.log("Created boolean object");
         }
         else if ((primitive = isPrimitiveType(str, i)) !== -1) {
             tokens.push({
@@ -350,7 +374,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += primitive.length;
-            console.log("Created primative object");
         }
         else if ((special = isSpecial(str, i)) !== -1) {
             tokens.push({
@@ -359,7 +382,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += special.length;
-            console.log("Created special object");
         }
         else if ((operator = isOperator(str, i)) !== -1) {
             tokens.push({
@@ -368,7 +390,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += operator.length;
-            console.log("Created operator object");
         }
         else if ((seperator = isSeperator(str, i)) !== -1) {
             tokens.push({
@@ -377,7 +398,6 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += seperator.length;
-            console.log("Created seperator object");
         }
         else if ((keyword = isKeyword(str, i)) !== -1) {
             tokens.push({
@@ -386,25 +406,21 @@ function parseString (str) {
                 tokenCount: 1
             });
             i += keyword.length;
-            console.log("Created keyword object");
         }
-        /*else if ((number = isANumber(str, i)) !== -1) {
-            console.log(typeof(number));
+        else if ((number = isANumber(str, i)) !== -1) {
             tokens.push({
                 tokenName: number.toString(),
                 tokenColor: numberColor,
                 tokenCOunt: 1
             });
             i += number.length;
-            console.log("Created number object");
-        }*/
+        }
         else {
         	tokens.push({
         		tokenName: str[i],
         		tokenColor: "white",
         		tokenCount: 1
         	});
-        	console.log("Pushed other");
         	i += 1;
         }
     }
@@ -413,14 +429,15 @@ function parseString (str) {
     function setupTypewriter(documentObject) {
         var typewriter = {
             destinationDocumentObject: documentObject,
-            typeSpeed: 100,
+            typeSpeed: 500,
             isRunning: false,
             tokens: [],
             textColor: "white",
             syntaxHighlighting: true,
             charPosition: 0,
             currentToken: 0,
-            setSpeed: function (newSpeed) {
+            setTypeSpeed: function (newSpeed) {
+                if (newSpeed < 0 || newSpeed > 1000) return;
                 this.typewriterSpeed = newSpeed;
             },
             stop: function () {
@@ -437,7 +454,6 @@ function parseString (str) {
                             tokenColor: commentColor
                         });
                         i += comment.length;
-                        console.log("Created single comment object");
                     }
                     else if ((multiComment = isMultiLineComment(str, i)) !== -1) {
                         this.tokens.push({
@@ -445,15 +461,13 @@ function parseString (str) {
                             tokenColor: commentColor
                         });
                         i += multiComment.length;
-                        console.log("Created multi comment object");
                     }
-                    else if ((string = isString(str, i)) !== -1) {
-                        this.tokens.push({
-                            tokenName: string,
-                            tokenColor: stringColor
-                        });
-                        i += string.length;
-                        console.log("Created string object");
+                    else if ((string = isString(str, i)).length !== 0) {
+                        this.tokens = this.tokens.concat(string);
+                        // Add all the lengths of string
+                        for (var it = 0; it < string.length; it++) {
+                            i += string[it].length;
+                        }
                     }
                     else if ((functionText = isFunction(str, i)) !== -1) {
                         this.tokens.push({
@@ -461,7 +475,6 @@ function parseString (str) {
                             tokenColor: functionColor
                         });
                         i += functionText.length;
-                        console.log("Created function object");
                     }
                     else if ((boolean = isBoolean(str, i)) !== -1) {
                         this.tokens.push({
@@ -469,7 +482,6 @@ function parseString (str) {
                             tokenColor: booleanColor
                         });
                         i += boolean.length;
-                        console.log("Created boolean object");
                     }
                     else if ((primitive = isPrimitiveType(str, i)) !== -1) {
                         this.tokens.push({
@@ -477,7 +489,6 @@ function parseString (str) {
                             tokenColor: primitiveTypeColor
                         });
                         i += primitive.length;
-                        console.log("Created primative object");
                     }
                     else if ((special = isSpecial(str, i)) !== -1) {
                         this.tokens.push({
@@ -485,7 +496,6 @@ function parseString (str) {
                             tokenColor: specialValueColor
                         });
                         i += special.length;
-                        console.log("Created special object");
                     }
                     else if ((operator = isOperator(str, i)) !== -1) {
                         this.tokens.push({
@@ -493,7 +503,6 @@ function parseString (str) {
                             tokenColor: operatorColor
                         });
                         i += operator.length;
-                        console.log("Created operator object");
                     }
                     else if ((seperator = isSeperator(str, i)) !== -1) {
                         this.tokens.push({
@@ -501,7 +510,6 @@ function parseString (str) {
                             tokenColor: seperatorColor
                         });
                         i += seperator.length;
-                        console.log("Created seperator object");
                     }
                     else if ((keyword = isKeyword(str, i)) !== -1) {
                         this.tokens.push({
@@ -509,23 +517,19 @@ function parseString (str) {
                             tokenColor: keywordColor
                         });
                         i += keyword.length;
-                        console.log("Created keyword object");
                     }
                     else if ((number = isANumber(str, i)) !== -1) {
-                        console.log(typeof(number));
                         this.tokens.push({
                             tokenName: number.toString(),
                             tokenColor: numberColor
                         });
                         i += number.length;
-                        console.log("Created number object");
                     }
                     else {
                     	this.tokens.push({
                     		tokenName: str[i],
                     		tokenColor: "white"
                     	});
-                    	console.log("Pushed other");
                     	i += 1;
                     }
                 }
@@ -549,7 +553,7 @@ function parseString (str) {
                         addSpan(this.destinationDocumentObject, this.tokens[this.currentToken].tokenName[this.charPosition], this.tokens[this.currentToken].tokenColor);
                     }
                     else {
-                        addSpan(this.destinationDocumentObject, this.tokens[this.currentToken][this.charPosition].tokenName, this.textColor);
+                        addSpan(this.destinationDocumentObject, this.tokens[this.currentToken].tokenName[this.charPosition], this.textColor);
                     }
                 }
                 this.charPosition += 1;
@@ -579,5 +583,7 @@ function parseString (str) {
         return typewriter;
     }
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
-    typewriter.parseString("helloThere()\nint i = 5;");
+    typewriter.parseHtml(document.getElementById("typewriter"));
+    typewriter.setTypeSpeed(100);
+    typewriter.clearScreen();
     typewriter.type();
