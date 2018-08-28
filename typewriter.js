@@ -637,10 +637,17 @@ function parseString (str) {
         };
         return typewriter;
     }
+    $("#typewriter-input").on('keyup', function (e) {
+    if (e.keyCode == 13) {
+        var elem = document.getElementById("typewriter-input");
+        console.log(elem.value);
+        elem.value = "";
+        console.log("pressed");
+    }
+});
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
     typewriter.parseHtml(document.getElementById("typewriter"));
     typewriter.setTypeSpeed(300);
     typewriter.scrollLock(true);
-    typewriter.scrollLock(false);
     typewriter.clearScreen();
     typewriter.type();
