@@ -454,6 +454,8 @@ function parseString (str) {
             textColor: "white",
             syntaxHighlighting: true,
             charPosition: 0,
+            isScrollLock: false,
+            scrollLockInterval: -1,
             currentToken: 0,
             setTypeSpeed: function (newSpeed) {
                 if (newSpeed < 0 || newSpeed > 1000) return;
@@ -610,12 +612,35 @@ function parseString (str) {
                 this.isRunning = true;
                 var that = this;
                 setTimeout(function() {that.typeChar()}, this.typeWaitTime());
+            },
+            scrollLock: function (scrollLockOn) {
+                var that = this;
+                console.log("ScrollLock");
+                console.log(this.scrollLock);
+                if (scrollLockOn && !this.isScrollLock) {
+                    console.log("Turning on");
+                    this.scrollLockInterval = setInterval(function() {that.destinationDocumentObject.scrollTop
+                        console.log(that.destinationDocumentObject.scrollTop);
+                        that.destinationDocumentObject.scrollTop = that.destinationDocumentObject.scrollHeight;
+                    }, 50);
+                    console.log(this.scrollLockInterval);
+                    this.isScrollLock = true;
+                }
+                else if (!scrollLockOn && this.isScrollLock) {
+                    console.log("turning off");
+                    clearInterval(that.scrollLockInterval);
+                    this.isScrollLock = false;
+                    this.scrollLockInterval = -1;
+                }
+                console.log("pass");
             }
         };
         return typewriter;
     }
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
     typewriter.parseHtml(document.getElementById("typewriter"));
-    typewriter.setTypeSpeed(100);
+    typewriter.setTypeSpeed(300);
+    typewriter.scrollLock(true);
+    typewriter.scrollLock(false);
     typewriter.clearScreen();
     typewriter.type();
