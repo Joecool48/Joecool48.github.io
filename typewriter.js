@@ -14,8 +14,10 @@ var stringColor = "yellow";
 //Figure out how to implement escape characters correctly
 var escapeCharacters = ["\\n", "\\t", "\\'", '\\"', "\\\\"];
 var escapeCharacterColor = "violet";
-var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">"];
+var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">", "+=", "-=", "*=", "/=", "%=", "&=", "^=", "|="];
 var operatorColor = "red";
+var unaryOperators = ["++", "--"];
+var unaryOperatorColor = "red";
 var leftToAdd = "";
 //var isString = false;
 var numberColor = "violet"
@@ -31,7 +33,7 @@ var otherTypeColor = "blue";
 var functionDeclarationColor = "green"
 var declarationParameterColor = "orange";
 //var isSingleLineComment = false;
-var commentColor = "grey";
+var commentColor = "gray";
 var singleLineComment = "//";
 var multiLineComment = "/*";
 var multiLineCommentEnd = "*/";
@@ -52,10 +54,14 @@ var allowedNumCharsAfter = ["f", "l"]; // etc
 
 
 // Helper functions for parsing
-
+function cat(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        this.push(arr[i]);
+    }
+}
 function addSpan (elem, text, color) {
     newSpan = document.createElement ("span");
-    newSpan.setAttribute ("class", color);
+    newSpan.style.color = color;
     elem.appendChild (newSpan);
     newSpan.innerHTML = text;
 }
@@ -132,6 +138,14 @@ function isOperator (str, index) {
     }
     return -1;
 }
+function isUnaryOperator (str, index) {
+    for (var i = 0; i < unaryOperators.length; i++) {
+        if (str.substr(index, unaryOperators[i].length) === unaryOperators[i] && ((!isValidOperand(str[index - 1]) && isValidOperand(str[index + unaryOperators[i].length])) || (isValidOperand(str[index - 1]) && !isValidOperand(str[index + unaryOperators[i].length])))) {
+            return unaryOperators[i];
+        }
+    }
+    return -1;
+}
 function isString (str, index) {
     if (str[index] === '"' || str[index] === "'") {
         var indexMatchingQuote = str.indexOf(str[index], index + 1);
@@ -140,30 +154,30 @@ function isString (str, index) {
             return [];
         }
         tempTokens = [];
-        var i = index + 1;
+        var it = index + 1;
         tempTokens.push({
             tokenName: str[index],
             tokenColor: stringColor
         });
-        while (str[i] !== matchingQuote && i < str.length) {
+        while (str[it] !== matchingQuote && it < str.length) {
             var escapeAdded = false;
             for (var charIdx = 0; charIdx < escapeCharacters.length; charIdx++) {
-                if (str.substr(i, escapeCharacters[charIdx].length) === escapeCharacters[charIdx]) {
+                if (str.substr(it, escapeCharacters[charIdx].length) === escapeCharacters[charIdx]) {
                     escapeAdded = true;
                     tempTokens.push({
                         tokenName: escapeCharacters[charIdx],
                         tokenColor: escapeCharacterColor
                     });
-                    i += escapeCharacters[charIdx].length;
+                    it += escapeCharacters[charIdx].length;
                     break;
                 }
             }
             if (!escapeAdded) {
                 tempTokens.push({
-                    tokenName: str[i],
+                    tokenName: str[it],
                     tokenColor: stringColor
                 });
-                i += 1;
+                it += 1;
             }
 
         }
@@ -325,6 +339,7 @@ function parseString (str) {
     //     tokenCount: 0
     // }
     var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
+    console.log(str.length);
     while (i < str.length) {
         if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
@@ -416,12 +431,16 @@ function parseString (str) {
             i += number.length;
         }
         else {
+            var char = str[i];
+            if (str[i] === " ") {
+                char = "&nbsp";
+            }
         	tokens.push({
-        		tokenName: str[i],
+        		tokenName: char,
         		tokenColor: "white",
         		tokenCount: 1
         	});
-        	i += 1;
+
         }
     }
     return tokens;
@@ -429,7 +448,7 @@ function parseString (str) {
     function setupTypewriter(documentObject) {
         var typewriter = {
             destinationDocumentObject: documentObject,
-            typeSpeed: 500,
+            typeSpeed: 100,
             isRunning: false,
             tokens: [],
             textColor: "white",
@@ -445,9 +464,11 @@ function parseString (str) {
             },
             parseString: function (str) {
                 this.tokens = [];
-                var i = 0;
+                let i = 0;
                 var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
+                console.log(str.length);
                 while (i < str.length) {
+                    console.log(i);
                     if ((comment = isSingleLineComment(str, i)) !== -1) {
                         this.tokens.push({
                             tokenName: comment,
@@ -463,10 +484,13 @@ function parseString (str) {
                         i += multiComment.length;
                     }
                     else if ((string = isString(str, i)).length !== 0) {
-                        this.tokens = this.tokens.concat(string);
+                        for (var i2 = 0; i2 < string.length; i2++) {
+                            this.tokens.push(string[i2]);
+                        }
                         // Add all the lengths of string
                         for (var it = 0; it < string.length; it++) {
-                            i += string[it].length;
+                            console.log("Arr len: " + string[it].length)
+                            i += string[it].tokenName.length;
                         }
                     }
                     else if ((functionText = isFunction(str, i)) !== -1) {
@@ -504,6 +528,13 @@ function parseString (str) {
                         });
                         i += operator.length;
                     }
+                    else if ((unaryOperator = isUnaryOperator(str, i)) !== -1) {
+                        this.tokens.push({
+                            tokenName: unaryOperator,
+                            tokenColor: unaryOperatorColor
+                        });
+                        i += unaryOperator.length;
+                    }
                     else if ((seperator = isSeperator(str, i)) !== -1) {
                         this.tokens.push({
                             tokenName: seperator,
@@ -532,6 +563,7 @@ function parseString (str) {
                     	});
                     	i += 1;
                     }
+                    console.log(i);
                 }
             },
             clearScreen: function () {
