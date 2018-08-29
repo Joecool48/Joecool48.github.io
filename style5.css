@@ -589,8 +589,16 @@ pre {
     border-width: 0px;
     border: none;
     font-family: 'Poppins', sans-serif;
-    font-size: 1.1em;
+
     font-weight: 300;
     line-height: 1.7em;
     color: white;
+}
+input[type="text"]
+{
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.8em;
+    font-weight: 300;
+    line-height: 1.7em;
+    color: #999;
 }

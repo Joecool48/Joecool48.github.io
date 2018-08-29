@@ -212,7 +212,7 @@ function isBoolean (str, index) {
 
 function isPrimitiveType (str, index) {
     for (var i = 0; i < primitiveTypes.length; i++) {
-        if (str.substr(index, primitiveTypes[i].length) === primitiveTypes[i] && !isAlphaNumeric(str[index - 1]) && !isAlphaNumeric(str[index + primitiveTypes[i]])) {
+        if (str.substr(index, primitiveTypes[i].length) === primitiveTypes[i] && !isAlphaNumeric(str[index - 1]) && !isAlphaNumeric(str[index + primitiveTypes[i].length])) {
             return primitiveTypes[i];
         }
     }
@@ -456,6 +456,12 @@ function parseString (str) {
             isScrollLock: false,
             scrollLockInterval: -1,
             currentToken: 0,
+            setSyntaxHighlighting: function (isSyntaxHighlightingOn) {
+                this.syntaxHighlighting = isSyntaxHighlightingOn;
+            },
+            setNotSyntaxColor: function (color) {
+                this.textColor = color;
+            },
             setTypeSpeed: function (newSpeed) {
                 if (newSpeed < 0 || newSpeed > 1000) return;
                 this.typewriterSpeed = newSpeed;
@@ -563,8 +569,15 @@ function parseString (str) {
                     }
                 }
             },
+            clearMessage: function () {
+                this.tokens = [];
+            },
             clearScreen: function () {
                 this.destinationDocumentObject.innerHTML = "";
+            },
+            reset: function () {
+                this.clearMessage();
+                this.clearScreen();
             },
             parseHtml: function(html) {
                 this.parseString(htmlUnescape(html.innerHTML));
@@ -576,8 +589,10 @@ function parseString (str) {
                 return Math.round(Math.random() * this.typeSpeed / 2);
             },
             typeChar: function() {
+                if (this.tokens.length === 0 || this.tokens === undefined || this.tokens === null) return;
                 if (this.currentToken < this.tokens.length) {
                     // Go to a new token
+                    console.log(this.syntaxHighlighting);
                     if (this.syntaxHighlighting) {
                         addSpan(this.destinationDocumentObject, this.tokens[this.currentToken].tokenName[this.charPosition], this.tokens[this.currentToken].tokenColor);
                     }
@@ -633,8 +648,9 @@ function parseString (str) {
     }
 });
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
-    typewriter.parseHtml(document.getElementById("typewriter"));
+    //typewriter.parseHtml(document.getElementById("typewriter"));
+    typewriter.parseString("Hello there my friend\nIt has been awhile...\n");
     typewriter.setTypeSpeed(300);
-    typewriter.scrollLock(true);
     typewriter.clearScreen();
+    typewriter.setSyntaxHighlighting(false);
     typewriter.type();
