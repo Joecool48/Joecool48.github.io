@@ -76,27 +76,52 @@
                 </nav>
                 <div id="typewriter-div">
 <p id="typewriter" >
-String str = "This is a string\n\t";
-int sum = 0;
-for (int i = 0; i < str.length(); i++) {
-    sum += str[i];
-}
-System.out.println("Sum = " + sum);
-// This is a very unimportant comment.
-// I dont know why this is here
-// Seriously, why?
-// Yeah
-// Well then
-// Okay
-/* cool dude
-bdsfa
-adsfasfddasfsafdda
-asdfasdfssdfasf
-sadfsafasfsaf
-dasfsafsaf
-safsafsafsafsafasf
-gsagasgdasfsafddas
-*/
+    function isString (str, index) {
+        if (str[index] === '"' || str[index] === "'") {
+            var indexMatchingQuote = str.indexOf(str[index], index + 1);
+            var matchingQuote = str[index];
+            if (indexMatchingQuote === -1) {
+                return [];
+            }
+            tempTokens = [];
+            var it = index + 1;
+            tempTokens.push({
+                tokenName: str[index],
+                tokenColor: stringColor
+            });
+            while (str[it] !== matchingQuote && it < str.length) {
+                var escapeAdded = false;
+                for (var charIdx = 0; charIdx < escapeCharacters.length; charIdx++) {
+                    if (str.substr(it, escapeCharacters[charIdx].length) === escapeCharacters[charIdx]) {
+                        escapeAdded = true;
+                        tempTokens.push({
+                            tokenName: escapeCharacters[charIdx],
+                            tokenColor: escapeCharacterColor
+                        });
+                        it += escapeCharacters[charIdx].length;
+                        break;
+                    }
+                }
+                if (!escapeAdded) {
+                    tempTokens.push({
+                        tokenName: str[it],
+                        tokenColor: stringColor
+                    });
+                    it += 1;
+                }
+
+            }
+            tempTokens.push({
+                tokenName: str[index],
+                tokenColor: stringColor
+            });
+            return tempTokens;
+            // if (indexMatchingQuote !== -1) {
+            //     return str.substring(index, indexMatchingQuote + 1);
+            // }
+        }
+        return [];
+    }
 </p>
 <input id="typewriter-input" type="text" name="" value="">
 </div>
@@ -121,7 +146,7 @@ gsagasgdasfsafddas
          </script>
          <script type="text/javascript">
             window.setInterval(function() {
-            var elem = document.getElementById('typewriterdiv');
+            var elem = document.getElementById('typewriter-div');
             elem.scrollTop = elem.scrollHeight;
             }, 5000);
          </script>

@@ -8,13 +8,13 @@ var plainTextColor = "white";
 var seperators = [";", ",",".", ":", "[", "]", "{", "}", "(", ")"];
 var seperatorColor = "white";
 var functionColor = "blue";
-var keywords = ["new", "for", "if", "else", "while", "break", "continue", "return", "class", "struct", "function", "goto", "static", "public", "private", "protected", "void"]; //...
+var keywords = ["var", "new", "for", "if", "else", "while", "break", "continue", "return", "class", "struct", "function", "goto", "static", "public", "private", "protected", "void"]; //...
 var keywordColor = "red";
 var stringColor = "yellow";
 //Figure out how to implement escape characters correctly
 var escapeCharacters = ["\\n", "\\t", "\\'", '\\"', "\\\\"];
 var escapeCharacterColor = "violet";
-var operators = ["=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">", "+=", "-=", "*=", "/=", "%=", "&=", "^=", "|="];
+var operators = ["&&", "||", "!==", "===", "=", "+", "-", "!", "*", "/", "%", "|", "&", "~", "^", "<", ">", "+=", "-=", "*=", "/=", "%=", "&=", "^=", "|="];
 var operatorColor = "red";
 var unaryOperators = ["++", "--"];
 var unaryOperatorColor = "red";
@@ -212,7 +212,7 @@ function isBoolean (str, index) {
 
 function isPrimitiveType (str, index) {
     for (var i = 0; i < primitiveTypes.length; i++) {
-        if (str.substr(index, primitiveTypes[i].length) === primitiveTypes[i]) {
+        if (str.substr(index, primitiveTypes[i].length) === primitiveTypes[i] && !isAlphaNumeric(str[index - 1]) && !isAlphaNumeric(str[index + primitiveTypes[i]])) {
             return primitiveTypes[i];
         }
     }
@@ -339,7 +339,6 @@ function parseString (str) {
     //     tokenCount: 0
     // }
     var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
-    console.log(str.length);
     while (i < str.length) {
         if ((comment = isSingleLineComment(str, i)) !== -1) {
             tokens.push({
@@ -468,9 +467,7 @@ function parseString (str) {
                 this.tokens = [];
                 let i = 0;
                 var comment, multiComment, string, functionText, boolean, primative, special, operator, number, seperator, keyword, number;
-                console.log(str.length);
                 while (i < str.length) {
-                    console.log(i);
                     if ((comment = isSingleLineComment(str, i)) !== -1) {
                         this.tokens.push({
                             tokenName: comment,
@@ -491,7 +488,6 @@ function parseString (str) {
                         }
                         // Add all the lengths of string
                         for (var it = 0; it < string.length; it++) {
-                            console.log("Arr len: " + string[it].length)
                             i += string[it].tokenName.length;
                         }
                     }
@@ -565,7 +561,6 @@ function parseString (str) {
                     	});
                     	i += 1;
                     }
-                    console.log(i);
                 }
             },
             clearScreen: function () {
@@ -615,24 +610,17 @@ function parseString (str) {
             },
             scrollLock: function (scrollLockOn) {
                 var that = this;
-                console.log("ScrollLock");
-                console.log(this.scrollLock);
                 if (scrollLockOn && !this.isScrollLock) {
-                    console.log("Turning on");
                     this.scrollLockInterval = setInterval(function() {that.destinationDocumentObject.scrollTop
-                        console.log(that.destinationDocumentObject.scrollTop);
                         that.destinationDocumentObject.scrollTop = that.destinationDocumentObject.scrollHeight;
                     }, 50);
-                    console.log(this.scrollLockInterval);
                     this.isScrollLock = true;
                 }
                 else if (!scrollLockOn && this.isScrollLock) {
-                    console.log("turning off");
                     clearInterval(that.scrollLockInterval);
                     this.isScrollLock = false;
                     this.scrollLockInterval = -1;
                 }
-                console.log("pass");
             }
         };
         return typewriter;
@@ -640,9 +628,8 @@ function parseString (str) {
     $("#typewriter-input").on('keyup', function (e) {
     if (e.keyCode == 13) {
         var elem = document.getElementById("typewriter-input");
-        console.log(elem.value);
+        console.log("Got input = " + elem.value);
         elem.value = "";
-        console.log("pressed");
     }
 });
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
