@@ -76,6 +76,7 @@
                         </div>
                     </div>
                 </nav>
+                <!--
                 <div class = "container" id = "document">
                     <div class = "jumbotron blue-background">
                         <h1 class="jumbodec linear-wipe">Welcome!</h1>
@@ -143,8 +144,57 @@
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             </div>
         </div>
-
-
+-->
+<div id="typewriter-div">
+<p id="typewriter" >
+function isString (str, index) {
+    if (str[index] === '"' || str[index] === "'") {
+        var indexMatchingQuote = str.indexOf(str[index], index + 1);
+        var matchingQuote = str[index];
+        if (indexMatchingQuote === -1) {
+            return [];
+        }
+        tempTokens = [];
+        var it = index + 1;
+        tempTokens.push({
+            tokenName: str[index],
+            tokenColor: stringColor
+        });
+        while (str[it] !== matchingQuote && it < str.length) {
+            var escapeAdded = false;
+            for (var charIdx = 0; charIdx < escapeCharacters.length; charIdx++) {
+                if (str.substr(it, escapeCharacters[charIdx].length) === escapeCharacters[charIdx]) {
+                    escapeAdded = true;
+                    tempTokens.push({
+                        tokenName: escapeCharacters[charIdx],
+                        tokenColor: escapeCharacterColor
+                    });
+                    it += escapeCharacters[charIdx].length;
+                    break;
+                }
+            }
+            if (!escapeAdded) {
+                tempTokens.push({
+                    tokenName: str[it],
+                    tokenColor: stringColor
+                });
+                it += 1;
+            }
+        }
+        tempTokens.push({
+            tokenName: str[index],
+            tokenColor: stringColor
+        });
+        return tempTokens;
+        // if (indexMatchingQuote !== -1) {
+            //     return str.substring(index, indexMatchingQuote + 1);
+            // }
+    }
+    return [];
+}
+</p>
+<input id="typewriter-input" type="text" name="" value="">
+</div>
 
 
 
@@ -152,7 +202,7 @@
          <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
          <!-- Bootstrap Js CDN -->
          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
+         <script type="text/javascript" src="typewriter.js"></script>
          <script type="text/javascript">
              $(document).ready(function () {
                  $('#sidebarCollapse').on('click', function () {

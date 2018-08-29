@@ -648,9 +648,9 @@ function parseString (str) {
     }
 });
     var typewriter = setupTypewriter(document.getElementById("typewriter"));
-    //typewriter.parseHtml(document.getElementById("typewriter"));
-    typewriter.parseString("Hello there my friend\nIt has been awhile...\n");
+    typewriter.parseHtml(document.getElementById("typewriter"));
+    //typewriter.parseString("Hello there my friend\nIt has been awhile...\n");
     typewriter.setTypeSpeed(300);
     typewriter.clearScreen();
-    typewriter.setSyntaxHighlighting(false);
+    typewriter.setSyntaxHighlighting(true);
     typewriter.type();
